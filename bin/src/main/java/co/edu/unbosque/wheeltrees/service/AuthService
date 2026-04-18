@@ -1,0 +1,157 @@
+package co.edu.unbosque.wheeltrees.service;
+
+import co.edu.unbosque.wheeltrees.DTO.*;
+import co.edu.unbosque.wheeltrees.model.Usuario;
+import co.edu.unbosque.wheeltrees.model.VerificacionEmail;
+import co.edu.unbosque.wheeltrees.repository.UsuarioRepository;
+import co.edu.unbosque.wheeltrees.repository.VerificacionEmailRepository;
+import co.edu.unbosque.wheeltrees.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final UsuarioRepository usuarioRepository;
+    private final VerificacionEmailRepository verificacionEmailRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
+
+    private static final String DOMINIO_INSTITUCIONAL = "@unbosque.edu.co";
+
+    // ── Registro ─────────────────────────────────────────────────
+
+    @Transactional
+    public MensajeResponse registrar(RegistroRequest request) {
+
+        // 1. Validar dominio institucional
+        if (!request.getEmail().endsWith(DOMINIO_INSTITUCIONAL)) {
+            throw new IllegalArgumentException(
+                    "Solo se permiten correos institucionales @unbosque.edu.co");
+        }
+
+        // 2. Verificar que el email no esté en uso
+        if (usuarioRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException(
+                    "Ya existe una cuenta con este correo institucional");
+        }
+
+        // 3. Crear usuario
+        Usuario usuario = Usuario.builder()
+                .nombre(request.getNombre())
+                .apellido(request.getApellido())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .rol(request.getRol())
+                .emailVerificado(false)
+                .cuentaActiva(true)
+                .build();
+
+        usuarioRepository.save(usuario);
+
+        // 4. Generar y guardar OTP
+        String otp = generarOtp();
+        VerificacionEmail verificacion = VerificacionEmail.builder()
+                .usuario(usuario)
+                .codigoOtp(otp)
+                .usado(false)
+                .build();
+
+        verificacionEmailRepository.save(verificacion);
+
+        // 5. Aquí iría el envío del email con el OTP
+        //    Por ahora lo imprimimos en consola para desarrollo
+        System.out.println("====================================");
+        System.out.println("OTP para " + usuario.getEmail() + ": " + otp);
+        System.out.println("====================================");
+
+        return MensajeResponse.builder()
+                .mensaje("Registro exitoso. Revisa tu correo institucional para verificar tu cuenta.")
+                .exito(true)
+                .build();
+    }
+
+    // ── Verificar email ──────────────────────────────────────────
+
+    @Transactional
+    public MensajeResponse verificarEmail(VerificarEmailRequest request) {
+
+        // 1. Buscar usuario
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // 2. Buscar OTP válido
+        VerificacionEmail verificacion = verificacionEmailRepository
+                .findTopByUsuarioAndCodigoOtpAndUsadoFalseOrderByCreadoEnDesc(
+                        usuario, request.getCodigoOtp())
+                .orElseThrow(() -> new IllegalArgumentException("Código OTP inválido"));
+
+        // 3. Verificar vigencia
+        if (!verificacion.estaVigente()) {
+            throw new IllegalArgumentException(
+                    "El código OTP ha expirado. Solicita uno nuevo.");
+        }
+
+        // 4. Marcar OTP como usado y verificar email
+        verificacion.setUsado(true);
+        verificacionEmailRepository.save(verificacion);
+
+        usuario.setEmailVerificado(true);
+        usuarioRepository.save(usuario);
+
+        return MensajeResponse.builder()
+                .mensaje("Email verificado correctamente. Ya puedes iniciar sesión.")
+                .exito(true)
+                .build();
+    }
+
+    // ── Login ────────────────────────────────────────────────────
+
+    public AuthResponse login(LoginRequest request) {
+
+        // 1. Autenticar con Spring Security (valida email + password)
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        // 2. Cargar usuario
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // 3. Generar JWT
+        String token = jwtUtil.generarToken(usuario);
+
+        // 4. Construir response
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tipo("Bearer")
+                .usuario(UsuarioResponse.builder()
+                        .id(usuario.getId().toString())
+                        .nombre(usuario.getNombre())
+                        .apellido(usuario.getApellido())
+                        .email(usuario.getEmail())
+                        .rol(usuario.getRol().name())
+                        .fotoPerfil(usuario.getFotoPerfil())
+                        .build())
+                .build();
+    }
+
+    // ── Privados ─────────────────────────────────────────────────
+
+    private String generarOtp() {
+        SecureRandom random = new SecureRandom();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
+}
