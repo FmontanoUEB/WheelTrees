@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wheel-Trees — Aplicación Móvil de Transporte Compartido</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0b;
+      --surface:   #111113;
+      --card:      #16161a;
+      --border:    #242428;
+      --green:     #22c55e;
+      --green-dim: #16a34a;
+      --green-glow:#22c55e33;
+      --text:      #f0f0f2;
+      --muted:     #8888a0;
+      --accent:    #34d399;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE TEXTURE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: .5;
+    }
+
+    /* ─── HEADER / NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 5vw;
+      background: rgba(10,10,11,.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--green);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 400;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem 1.2rem;
+      background: var(--green);
+      color: #000 !important;
+      border-radius: 6px;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      font-size: .85rem !important;
+      letter-spacing: 0 !important;
+      transition: background .2s, transform .15s !important;
+    }
+    .nav-cta:hover { background: var(--accent) !important; transform: translateY(-1px); color: #000 !important; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 5vw 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(34,197,94,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .35rem .9rem;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.25);
+      border-radius: 100px;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      animation: fadeUp .6s ease both;
+    }
+
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 1.0;
+      letter-spacing: -.04em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .6s .1s ease both;
+    }
+
+    h1 span { color: var(--green); }
+
+    .hero-sub {
+      max-width: 52ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 400;
+      margin-bottom: 2.5rem;
+      animation: fadeUp .6s .2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp .6s .3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1.8rem;
+      background: var(--green);
+      color: #000;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 0 0 0 var(--green-glow);
+    }
+    .btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--green-glow);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1.8rem;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 400;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: border-color .2s, transform .15s;
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── PROGRESS STRIP ─── */
+    .progress-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 5vw;
+    }
+
+    .progress-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .progress-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .5rem;
+    }
+
+    .progress-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 100px;
+      height: 8px;
+      overflow: hidden;
+      max-width: 600px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 48%;
+      background: linear-gradient(90deg, var(--green-dim), var(--green));
+      border-radius: 100px;
+      position: relative;
+      animation: growBar 1.2s .5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @keyframes growBar {
+      from { width: 0; }
+      to   { width: 48%; }
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 12px; height: 12px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .progress-stats {
+      display: flex;
+      gap: 2.5rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: .2rem;
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 6rem 5vw; }
+
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+
+    .section-tag {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .8rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      letter-spacing: -.03em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .section-body {
+      color: var(--muted);
+      max-width: 55ch;
+      font-size: .95rem;
+      margin-bottom: 3rem;
+    }
+
+    /* ─── TIMELINE ─── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 110px;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .tl-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 2rem;
+      padding: 1.5rem 0;
+      position: relative;
+    }
+
+    .tl-week {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-align: right;
+      padding-top: .1rem;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: 104px;
+      top: 1.85rem;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--border);
+      z-index: 1;
+    }
+
+    .tl-item.done .tl-dot {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .tl-item.active .tl-dot {
+      background: var(--bg);
+      border-color: var(--green);
+      box-shadow: 0 0 14px var(--green);
+      animation: dotPulse 2s infinite;
+    }
+
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 6px var(--green); }
+      50% { box-shadow: 0 0 18px var(--green), 0 0 30px var(--green-glow); }
+    }
+
+    .tl-content {
+      padding-left: 1.5rem;
+    }
+
+    .tl-phase {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .3rem;
+    }
+
+    .tl-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+
+    .tl-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      max-width: 50ch;
+    }
+
+    .tl-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-top: .6rem;
+    }
+
+    .pill {
+      padding: .2rem .6rem;
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 4px;
+      font-size: .7rem;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .pill.gray {
+      background: rgba(136,136,160,.08);
+      border-color: rgba(136,136,160,.2);
+      color: var(--muted);
+    }
+
+    /* ─── SCREENS SECTION ─── */
+    .screens-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .screen-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+    .screen-card:hover {
+      border-color: rgba(34,197,94,.35);
+      transform: translateY(-4px);
+    }
+
+    .screen-img-wrap {
+      width: 100%;
+      aspect-ratio: 9/19;
+      overflow: hidden;
+      background: #0d0d10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .screen-info {
+      padding: 1rem 1.1rem 1.2rem;
+    }
+
+    .screen-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .3rem;
+    }
+
+    .screen-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      line-height: 1.2;
+      margin-bottom: .3rem;
+    }
+
+    .screen-desc {
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─── TECH STACK ─── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 3rem;
+    }
+
+    .tech-item {
+      background: var(--card);
+      padding: 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .tech-icon {
+      width: 40px; height: 40px;
+      background: rgba(34,197,94,.1);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .tech-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      margin-bottom: .2rem;
+    }
+
+    .tech-role {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    /* ─── CONTEXT SECTION ─── */
+    .context-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .context-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+    }
+
+    .context-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .context-card-title span {
+      font-size: 1.2rem;
+    }
+
+    .context-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .context-list li {
+      display: flex;
+      gap: .6rem;
+      font-size: .85rem;
+      color: var(--muted);
+      align-items: flex-start;
+    }
+
+    .context-list li::before {
+      content: '→';
+      color: var(--green);
+      flex-shrink: 0;
+      margin-top: .05rem;
+    }
+
+    /* ─── TEAM ─── */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .team-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+      transition: border-color .25s;
+    }
+    .team-card:hover { border-color: rgba(34,197,94,.35); }
+
+    .team-avatar {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--green-dim), var(--green));
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #000;
+      margin-bottom: 1rem;
+    }
+
+    .team-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .2rem;
+    }
+
+    .team-role {
+      font-size: .8rem;
+      color: var(--green);
+      margin-bottom: .6rem;
+    }
+
+    .team-email {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 3rem 5vw;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -.03em;
+      margin-bottom: .5rem;
+    }
+    .footer-logo span { color: var(--green); }
+
+    .footer-sub {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: .8rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--green); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .progress-inner { grid-template-columns: 1fr; }
+      .progress-stats { justify-content: center; }
+      .screens-grid { grid-template-columns: repeat(2, 1fr); }
+      .context-grid { grid-template-columns: 1fr; }
+      .timeline::before { left: 70px; }
+      .tl-item { grid-template-columns: 70px 1fr; gap: 1rem; }
+      .tl-dot { left: 64px; }
+    }
+
+    @media (max-width: 480px) {
+      .screens-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon">🌳</div>
+    Wheel-Trees
+  </a>
+  <ul class="nav-links">
+    <li><a href="#avance">Avance</a></li>
+    <li><a href="#pantallas">App</a></li>
+    <li><a href="#tecnologia">Tecnología</a></li>
+    <li><a href="#equipo">Equipo</a></li>
+    <li>
+      <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="nav-cta">
+        ⭐ GitHub
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="badge">
+    <span class="badge-dot"></span>
+    En construcción · Semana 12 / 25
+  </div>
+
+  <h1>
+    Movilidad<br/>
+    universitaria<br/>
+    <span>rediseñada.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Wheel-Trees es una aplicación móvil multiplataforma de transporte compartido exclusiva para la comunidad de la Universidad El Bosque, con verificación biométrica e institucional.
+  </p>
+
+  <div class="hero-actions">
+    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary">
+      Ver en GitHub →
+    </a>
+    <a href="#avance" class="btn-secondary">
+      Ver avances ↓
+    </a>
+  </div>
+</section>
+
+<!-- PROGRESS STRIP -->
+<div class="progress-strip">
+  <div class="progress-inner">
+    <div>
+      <div class="progress-label">Progreso general del proyecto</div>
+      <div class="progress-title">Semana 12 de 25 — Fase III: Construcción en curso</div>
+      <div style="margin-bottom:.5rem; font-size:.8rem; color:var(--muted);">
+        Fases I (Análisis) y II (Diseño) completadas · Iteraciones 1 y 2 de construcción funcionales
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:.4rem; font-size:.72rem; color:var(--muted);">
+        <span>Inicio</span>
+        <span style="color:var(--green); font-weight:600;">48% completado</span>
+        <span>Cierre</span>
+      </div>
+    </div>
+    <div class="progress-stats">
+      <div class="stat">
+        <div class="stat-num">2</div>
+        <div class="stat-lbl">Fases<br/>completadas</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">12</div>
+        <div class="stat-lbl">Requerimientos<br/>funcionales</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">8</div>
+        <div class="stat-lbl">Req. no<br/>funcionales</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">2</div>
+        <div class="stat-lbl">Plataformas<br/>iOS / Android</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<section id="avance">
+  <div class="section-inner">
+    <span class="section-tag reveal">Cronograma</span>
+    <h2 class="section-title reveal">Estado actual del proyecto</h2>
+    <p class="section-body reveal">
+      El proyecto avanza según el cronograma planificado de 25 semanas bajo metodología Lean Startup. Aquí el estado real a la semana 12.
+    </p>
+
+    <div class="timeline reveal">
+
+      <div class="tl-item done">
+        <div class="tl-week">W1–W6</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">✓ Completada</div>
+          <div class="tl-name">Fase I — Análisis</div>
+          <div class="tl-desc">Encuesta de movilidad, identificación de problemas, levantamiento de requerimientos, modelos AS-IS / TO-BE, casos de uso e historias de usuario.</div>
+          <div class="tl-pills">
+            <span class="pill">Encuesta aplicada</span>
+            <span class="pill">12 RF + 8 RNF</span>
+            <span class="pill">Modelo AS-IS</span>
+            <span class="pill">Modelo TO-BE</span>
+            <span class="pill">Árbol de problemas</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item done">
+        <div class="tl-week">W7–W9</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">✓ Completada</div>
+          <div class="tl-name">Fase II — Diseño</div>
+          <div class="tl-desc">Arquitectura del sistema, diagramas UML (secuencia, componentes, despliegue), mockups UI/UX en Figma, esquema de seguridad biométrica.</div>
+          <div class="tl-pills">
+            <span class="pill">Arquitectura cliente-servidor</span>
+            <span class="pill">Diagramas UML</span>
+            <span class="pill">Mockups UI/UX</span>
+            <span class="pill">Seguridad biométrica</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item active">
+        <div class="tl-week">W9–W12</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">⚡ En curso — Semana actual</div>
+          <div class="tl-name">Fase III — Construcción (Iteraciones 1 & 2)</div>
+          <div class="tl-desc">Registro de cuenta, login, verificación de correo institucional con OTP, gestión de perfiles para conductor y pasajero. Autenticación funcional en iOS y Android.</div>
+          <div class="tl-pills">
+            <span class="pill">Registro funcional</span>
+            <span class="pill">OTP institucional</span>
+            <span class="pill">Roles conductor/pasajero</span>
+            <span class="pill">Auth biométrica</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-week">W13–W20</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">Pendiente</div>
+          <div class="tl-name">Fase III — Construcción (Iteraciones 3, 4 & 5)</div>
+          <div class="tl-desc">Publicación y búsqueda de viajes, seguridad y notificaciones push, integración de Google Maps, integración total entre capas.</div>
+          <div class="tl-pills">
+            <span class="pill gray">Publicar viajes</span>
+            <span class="pill gray">Google Maps</span>
+            <span class="pill gray">Notificaciones</span>
+            <span class="pill gray">Calificaciones</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-week">W21–W23</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">Pendiente</div>
+          <div class="tl-name">Fase IV — Pruebas</div>
+          <div class="tl-desc">Plan de pruebas, análisis estático, pruebas de integración, rendimiento, seguridad y aceptación con usuarios reales de la comunidad.</div>
+          <div class="tl-pills">
+            <span class="pill gray">Pruebas estáticas</span>
+            <span class="pill gray">Pruebas dinámicas</span>
+            <span class="pill gray">ISO/IEC 25010</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-week">W24–W25</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-phase">Pendiente</div>
+          <div class="tl-name">Fase V — Piloto</div>
+          <div class="tl-desc">Prueba piloto con 20 usuarios (10 conductores + 10 pasajeros), encuestas Likert 1–5 de percepción de seguridad, evaluación BPSC, cierre del proyecto.</div>
+          <div class="tl-pills">
+            <span class="pill gray">20 usuarios piloto</span>
+            <span class="pill gray">Escala Likert</span>
+            <span class="pill gray">Evaluación BPSC</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section class="screens-section" id="pantallas">
+  <div class="section-inner">
+    <span class="section-tag reveal">La aplicación</span>
+    <h2 class="section-title reveal">Capturas reales del desarrollo</h2>
+    <p class="section-body reveal">
+      React Native con un solo código base para iOS y Android. Dark theme nativo, diseño limpio y flujos pensados para la comunidad universitaria.
+    </p>
+
+    <div class="screens-grid reveal">
+
+      <div class="screen-card">
+        <div class="screen-img-wrap">
+          <img src="1776811563067_image.png" alt="Pantalla de Crear Cuenta - vacía" />
+        </div>
+        <div class="screen-info">
+          <div class="screen-label">Iteración 1</div>
+          <div class="screen-name">Crear Cuenta</div>
+          <div class="screen-desc">Registro con username, correo institucional y contraseña. Diseño dark nativo.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-img-wrap">
+          <img src="1776811569138_image.png" alt="Pantalla de Crear Cuenta con datos y roles" />
+        </div>
+        <div class="screen-info">
+          <div class="screen-label">Iteración 2</div>
+          <div class="screen-name">Selección de Rol</div>
+          <div class="screen-desc">Campos extendidos con nombre, apellido, correo institucional y selector de rol Pasajero / Conductor.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-img-wrap">
+          <img src="1776811579128_image.png" alt="Verificación de correo OTP" />
+        </div>
+        <div class="screen-info">
+          <div class="screen-label">Iteración 1</div>
+          <div class="screen-name">Verificación OTP</div>
+          <div class="screen-desc">Código de 6 dígitos enviado al correo institucional @unbosque.edu.co. Registro exitoso confirmado.</div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-img-wrap">
+          <img src="1776811583452_image.png" alt="Pantalla de Crear Cuenta versión limpia" />
+        </div>
+        <div class="screen-info">
+          <div class="screen-label">UI/UX</div>
+          <div class="screen-name">Estado Vacío</div>
+          <div class="screen-desc">Estado limpio del formulario con placeholders, íconos y coherencia visual en dark mode.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tecnologia">
+  <div class="section-inner">
+    <span class="section-tag reveal">Stack tecnológico</span>
+    <h2 class="section-title reveal">Construido con tecnología moderna</h2>
+    <p class="section-body reveal">
+      Herramientas seleccionadas por madurez, cobertura multiplataforma y alineación con los requerimientos de seguridad del sistema.
+    </p>
+
+    <div class="tech-grid reveal">
+      <div class="tech-item">
+        <div class="tech-icon">⚛️</div>
+        <div>
+          <div class="tech-name">React Native</div>
+          <div class="tech-role">Frontend móvil iOS & Android</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🟩</div>
+        <div>
+          <div class="tech-name">Node.js + Express</div>
+          <div class="tech-role">Backend API REST</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🗄️</div>
+        <div>
+          <div class="tech-name">MySQL</div>
+          <div class="tech-role">Base de datos relacional</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🗺️</div>
+        <div>
+          <div class="tech-name">Google Maps API</div>
+          <div class="tech-role">Rutas y geolocalización</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🔔</div>
+        <div>
+          <div class="tech-name">Firebase FCM</div>
+          <div class="tech-role">Notificaciones push</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🔐</div>
+        <div>
+          <div class="tech-name">Face ID / BiometricPrompt</div>
+          <div class="tech-role">Autenticación biométrica nativa</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🐙</div>
+        <div>
+          <div class="tech-name">GitHub + GitFlow</div>
+          <div class="tech-role">Control de versiones</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">📋</div>
+        <div>
+          <div class="tech-name">Notion</div>
+          <div class="tech-role">Gestión del proyecto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTEXT -->
+<section style="background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="section-inner">
+    <span class="section-tag reveal">Contexto del proyecto</span>
+    <h2 class="section-title reveal">El problema que resuelve</h2>
+    <p class="section-body reveal">
+      La Universidad El Bosque concentra más de 12.000 personas. La movilidad informal existe pero opera sin seguridad ni trazabilidad.
+    </p>
+
+    <div class="context-grid reveal">
+      <div class="context-card">
+        <div class="context-card-title"><span>🔴</span> Situación actual (AS-IS)</div>
+        <ul class="context-list">
+          <li>Coordinación manual por grupos de WhatsApp ("Wheels")</li>
+          <li>Sin verificación de identidad del conductor ni pasajero</li>
+          <li>Sin registro ni trazabilidad de los trayectos</li>
+          <li>Sin mecanismo de calificación o retroalimentación</li>
+          <li>Bogotá: una de las ciudades con mayor congestión vehicular del mundo</li>
+          <li>Práctica extendida pero sin respaldo institucional formal</li>
+        </ul>
+      </div>
+      <div class="context-card">
+        <div class="context-card-title"><span>🟢</span> Solución propuesta (TO-BE)</div>
+        <ul class="context-list">
+          <li>Acceso exclusivo con correo @unbosque.edu.co + OTP</li>
+          <li>Autenticación biométrica (Face ID / Touch ID)</li>
+          <li>Publicación y búsqueda de viajes en tiempo real</li>
+          <li>Sistema de calificaciones recíprocas conductor ↔ pasajero</li>
+          <li>Notificaciones automáticas y trazabilidad completa del viaje</li>
+          <li>Cobertura nativa en iOS y Android con una sola base de código</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="equipo">
+  <div class="section-inner">
+    <span class="section-tag reveal">Equipo</span>
+    <h2 class="section-title reveal">Desarrolladores y director</h2>
+
+    <div class="team-grid reveal">
+      <div class="team-card">
+        <div class="team-avatar">FM</div>
+        <div class="team-name">Fabián Andrey Montaño Piraban</div>
+        <div class="team-role">Desarrollador — Ingeniería de Sistemas</div>
+        <div class="team-email">fmontano@unbosque.edu.co</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">FC</div>
+        <div class="team-name">Fredy Alejandro Cipamocha Hernández</div>
+        <div class="team-role">Desarrollador — Ingeniería de Sistemas</div>
+        <div class="team-email">fcipamocha@unbosque.edu.co</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar" style="background:linear-gradient(135deg,#475569,#64748b);">EE</div>
+        <div class="team-name">Edier Ernesto Espinosa Díaz</div>
+        <div class="team-role">Director del proyecto</div>
+        <div class="team-email">Informático Matemático · Mg. Economía</div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem; padding:1.5rem; background:var(--card); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;" class="reveal">
+      <div style="font-size:1.5rem;">🏫</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem;">Universidad El Bosque</div>
+        <div style="font-size:.8rem; color:var(--muted);">Programa de Ingeniería de Sistemas · Facultad de Ingeniería · Bogotá, 2026</div>
+      </div>
+      <div style="margin-left:auto;">
+        <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary" style="font-size:.85rem; padding:.6rem 1.2rem;">
+          Repositorio GitHub →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Wheel<span>-Trees</span></div>
+  <div class="footer-sub">Aplicación móvil de transporte de vehículo compartido · Universidad El Bosque · 2026</div>
+  <div class="footer-links">
+    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">GitHub</a>
+    <a href="#avance">Avance</a>
+    <a href="#pantallas">Capturas</a>
+    <a href="#tecnologia">Tecnología</a>
+    <a href="#equipo">Equipo</a>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
