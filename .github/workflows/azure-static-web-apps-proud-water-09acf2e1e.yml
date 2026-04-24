@@ -3,18 +3,16 @@ on:
   push:
     branches:
       - WebHTML
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - WebHTML
+  workflow_dispatch:
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v3
         with:
+          ref: WebHTML
           submodules: true
           lfs: false
       - name: Build And Deploy
