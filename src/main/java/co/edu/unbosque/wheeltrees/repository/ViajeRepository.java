@@ -1,6 +1,7 @@
 package co.edu.unbosque.wheeltrees.repository;
 
 import co.edu.unbosque.wheeltrees.model.EstadoViaje;
+import co.edu.unbosque.wheeltrees.model.TipoVehiculo;
 import co.edu.unbosque.wheeltrees.model.Viaje;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,11 @@ public interface ViajeRepository extends JpaRepository<Viaje, UUID> {
 	@Query("SELECT v FROM Viaje v WHERE v.estado = 'PROGRAMADO' " + "AND v.cuposDisponibles > 0 "
 			+ "AND v.fechaHoraSalida > :desde " + "AND LOWER(v.origenDescripcion) LIKE LOWER(CONCAT('%', :texto, '%'))")
 	List<Viaje> buscarPorOrigen(@Param("texto") String texto, @Param("desde") LocalDateTime desde);
+	
+	@Query("SELECT v FROM Viaje v WHERE v.estado = 'PROGRAMADO' " +
+		       "AND v.cuposDisponibles > 0 " +
+		       "AND v.fechaHoraSalida > :desde " +
+		       "AND v.vehiculo.tipo = :tipo")
+		List<Viaje> buscarPorTipoVehiculo(@Param("tipo") TipoVehiculo tipo,
+		                                   @Param("desde") LocalDateTime desde);
 }

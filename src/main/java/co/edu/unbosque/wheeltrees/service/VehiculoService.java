@@ -44,6 +44,8 @@ public class VehiculoService {
                 .capacidadPasajeros(request.getCapacidadPasajeros())
                 .fotoVehiculo(request.getFotoVehiculo())
                 .activo(true)
+                .tipo(request.getTipo())
+                .cedulaPropietario(request.getCedulaPropietario())
                 .build();
 
         return toResponse(vehiculoRepository.save(vehiculo));
@@ -99,6 +101,8 @@ public class VehiculoService {
                 .capacidadPasajeros(v.getCapacidadPasajeros())
                 .fotoVehiculo(v.getFotoVehiculo())
                 .activo(v.isActivo())
+                .tipo(v.getTipo().name())
+                .cedulaPropietario(v.getCedulaPropietario())
                 .build();
     }
 }

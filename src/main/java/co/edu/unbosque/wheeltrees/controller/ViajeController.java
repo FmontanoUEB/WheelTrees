@@ -1,6 +1,7 @@
 package co.edu.unbosque.wheeltrees.controller;
 
 import co.edu.unbosque.wheeltrees.DTO.ViajeDTO.*;
+import co.edu.unbosque.wheeltrees.model.TipoVehiculo;
 import co.edu.unbosque.wheeltrees.security.JwtUtil;
 import co.edu.unbosque.wheeltrees.service.ViajeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,56 +23,67 @@ import java.util.UUID;
 @SecurityRequirement(name = "bearerAuth")
 public class ViajeController {
 
-    private final ViajeService viajeService;
-    private final JwtUtil jwtUtil;
+	private final ViajeService viajeService;
+	private final JwtUtil jwtUtil;
 
-    @Operation(summary = "Publicar un viaje (conductor)")
-    @PostMapping
-    public ResponseEntity<ViajeResponse> publicar(
-            @RequestHeader("Authorization") String authHeader,
-            @Valid @RequestBody PublicarViajeRequest request) {
+	@Operation(summary = "Publicar un viaje (conductor)")
+	@PostMapping
+	public ResponseEntity<ViajeResponse> publicar(@RequestHeader("Authorization") String authHeader,
+			@Valid @RequestBody PublicarViajeRequest request) {
 
-        UUID conductorId = extraerId(authHeader);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(viajeService.publicar(conductorId, request));
-    }
+		UUID conductorId = extraerId(authHeader);
+		return ResponseEntity.status(HttpStatus.CREATED).body(viajeService.publicar(conductorId, request));
+	}
 
-    @Operation(summary = "Buscar viajes disponibles (pasajero)")
-    @GetMapping
-    public ResponseEntity<List<ViajeResponse>> buscarDisponibles(
-            @RequestParam(required = false) String origen) {
+	@Operation(summary = "Buscar viajes disponibles (pasajero)")
+	@GetMapping
+	public ResponseEntity<List<ViajeResponse>> buscarDisponibles(@RequestParam(required = false) String origen,
+			@RequestParam(required = false) TipoVehiculo tipo) {
 
-        return ResponseEntity.ok(viajeService.buscarDisponibles(origen));
-    }
+		return ResponseEntity.ok(viajeService.buscarDisponibles(origen, tipo));
+	}
 
-    @Operation(summary = "Ver detalle de un viaje")
-    @GetMapping("/{viajeId}")
-    public ResponseEntity<ViajeResponse> detalle(@PathVariable UUID viajeId) {
-        return ResponseEntity.ok(viajeService.detalle(viajeId));
-    }
+	@Operation(summary = "Ver detalle de un viaje")
+	@GetMapping("/{viajeId}")
+	public ResponseEntity<ViajeResponse> detalle(@PathVariable UUID viajeId) {
+		return ResponseEntity.ok(viajeService.detalle(viajeId));
+	}
 
-    @Operation(summary = "Mis viajes publicados (conductor)")
-    @GetMapping("/mis-viajes")
-    public ResponseEntity<List<ViajeResponse>> misViajes(
-            @RequestHeader("Authorization") String authHeader) {
+	@Operation(summary = "Mis viajes publicados (conductor)")
+	@GetMapping("/mis-viajes")
+	public ResponseEntity<List<ViajeResponse>> misViajes(@RequestHeader("Authorization") String authHeader) {
 
-        UUID conductorId = extraerId(authHeader);
-        return ResponseEntity.ok(viajeService.misViajes(conductorId));
-    }
+		UUID conductorId = extraerId(authHeader);
+		return ResponseEntity.ok(viajeService.misViajes(conductorId));
+	}
 
-    @Operation(summary = "Cancelar un viaje (conductor)")
-    @DeleteMapping("/{viajeId}")
-    public ResponseEntity<Void> cancelar(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID viajeId) {
+	@Operation(summary = "Iniciar un viaje (conductor)")
+	@PatchMapping("/{viajeId}/iniciar")
+	public ResponseEntity<ViajeResponse> iniciar(@RequestHeader("Authorization") String authHeader,
+			@PathVariable UUID viajeId) {
+		return ResponseEntity.ok(viajeService.iniciar(extraerId(authHeader), viajeId));
+	}
 
-        UUID conductorId = extraerId(authHeader);
-        viajeService.cancelar(conductorId, viajeId);
-        return ResponseEntity.noContent().build();
-    }
+	@Operation(summary = "Completar un viaje (conductor)")
+	@PatchMapping("/{viajeId}/completar")
+	public ResponseEntity<ViajeResponse> completar(@RequestHeader("Authorization") String authHeader,
+			@PathVariable UUID viajeId) {
+		return ResponseEntity.ok(viajeService.completar(extraerId(authHeader), viajeId));
+	}
 
-    private UUID extraerId(String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        return jwtUtil.extraerUsuarioId(token);
-    }
+	@Operation(summary = "Cancelar un viaje (conductor)")
+	@DeleteMapping("/{viajeId}")
+	public ResponseEntity<Void> cancelar(@RequestHeader("Authorization") String authHeader,
+			@PathVariable UUID viajeId) {
+
+		UUID conductorId = extraerId(authHeader);
+		viajeService.cancelar(conductorId, viajeId);
+		return ResponseEntity.noContent().build();
+	}
+
+	private UUID extraerId(String authHeader) {
+		String token = authHeader.replace("Bearer ", "");
+		return jwtUtil.extraerUsuarioId(token);
+	}
+
 }

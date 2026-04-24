@@ -14,7 +14,6 @@ public class Vehiculo {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Relación: un conductor puede tener varios vehículos
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conductor_id", nullable = false)
     private Usuario conductor;
@@ -34,8 +33,15 @@ public class Vehiculo {
     @Column(name = "color", nullable = false, length = 30)
     private String color;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false)
+    private TipoVehiculo tipo; // CARRO o MOTO
+
+    @Column(name = "cedula_propietario", nullable = false, length = 20)
+    private String cedulaPropietario;
+
     @Column(name = "capacidad_pasajeros", nullable = false)
-    private Integer capacidadPasajeros; // máx asientos disponibles para compartir
+    private Integer capacidadPasajeros;
 
     @Column(name = "foto_vehiculo", length = 500)
     private String fotoVehiculo;

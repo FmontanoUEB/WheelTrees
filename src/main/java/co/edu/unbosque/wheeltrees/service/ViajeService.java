@@ -60,12 +60,26 @@ public class ViajeService {
 		return toResponse(viajeRepository.save(viaje));
 	}
 
-	public List<ViajeResponse> buscarDisponibles(String origen) {
+	public List<ViajeResponse> buscarDisponibles(String origen, TipoVehiculo tipo) {
 		LocalDateTime ahora = LocalDateTime.now();
 
-		List<Viaje> viajes = (origen != null && !origen.isBlank()) ? viajeRepository.buscarPorOrigen(origen, ahora)
-				: viajeRepository.findByEstadoAndCuposDisponiblesGreaterThanAndFechaHoraSalidaAfter(
-						EstadoViaje.PROGRAMADO, 0, ahora);
+		List<Viaje> viajes;
+
+		if (tipo != null && origen != null && !origen.isBlank()) {
+			// filtro por origen Y tipo
+			viajes = viajeRepository.buscarPorOrigen(origen, ahora).stream()
+					.filter(v -> v.getVehiculo().getTipo() == tipo).toList();
+		} else if (tipo != null) {
+			// solo filtro por tipo
+			viajes = viajeRepository.buscarPorTipoVehiculo(tipo, ahora);
+		} else if (origen != null && !origen.isBlank()) {
+			// solo filtro por origen
+			viajes = viajeRepository.buscarPorOrigen(origen, ahora);
+		} else {
+			// sin filtros
+			viajes = viajeRepository.findByEstadoAndCuposDisponiblesGreaterThanAndFechaHoraSalidaAfter(
+					EstadoViaje.PROGRAMADO, 0, ahora);
+		}
 
 		return viajes.stream().map(this::toResponse).toList();
 	}
@@ -95,6 +109,30 @@ public class ViajeService {
 
 		viaje.setEstado(EstadoViaje.CANCELADO);
 		viajeRepository.save(viaje);
+	}
+
+	@Transactional
+	public ViajeResponse iniciar(UUID conductorId, UUID viajeId) {
+		Viaje viaje = viajeRepository.findById(viajeId)
+				.orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado"));
+		if (!viaje.getConductor().getId().equals(conductorId))
+			throw new IllegalArgumentException("No tienes permiso");
+		if (viaje.getEstado() != EstadoViaje.PROGRAMADO)
+			throw new IllegalArgumentException("El viaje no está en estado PROGRAMADO");
+		viaje.setEstado(EstadoViaje.EN_CURSO);
+		return toResponse(viajeRepository.save(viaje));
+	}
+
+	@Transactional
+	public ViajeResponse completar(UUID conductorId, UUID viajeId) {
+		Viaje viaje = viajeRepository.findById(viajeId)
+				.orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado"));
+		if (!viaje.getConductor().getId().equals(conductorId))
+			throw new IllegalArgumentException("No tienes permiso");
+		if (viaje.getEstado() != EstadoViaje.EN_CURSO)
+			throw new IllegalArgumentException("El viaje no está EN_CURSO");
+		viaje.setEstado(EstadoViaje.COMPLETADO);
+		return toResponse(viajeRepository.save(viaje));
 	}
 
 	private ViajeResponse toResponse(Viaje v) {
