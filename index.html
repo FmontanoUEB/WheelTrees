@@ -727,12 +727,77 @@
     }
     .footer-links a:hover { color: var(--green); }
 
+    /* ─── MODELOS BIOPSICOSOCIALES ─── */
+    .bpsc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .bpsc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+    .bpsc-card:hover {
+      border-color: rgba(34,197,94,.35);
+      transform: translateY(-4px);
+    }
+
+    .bpsc-img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: #0d0d10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bpsc-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: .5rem;
+    }
+
+    .bpsc-info {
+      padding: 1rem 1.1rem 1.2rem;
+    }
+
+    .bpsc-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .3rem;
+    }
+
+    .bpsc-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      line-height: 1.2;
+      margin-bottom: .3rem;
+    }
+
+    .bpsc-desc {
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .progress-inner { grid-template-columns: 1fr; }
       .progress-stats { justify-content: center; }
       .screens-grid { grid-template-columns: repeat(2, 1fr); }
+      .bpsc-grid { grid-template-columns: repeat(2, 1fr); }
       .context-grid { grid-template-columns: 1fr; }
       .timeline::before { left: 70px; }
       .tl-item { grid-template-columns: 70px 1fr; gap: 1rem; }
@@ -741,6 +806,7 @@
 
     @media (max-width: 480px) {
       .screens-grid { grid-template-columns: 1fr 1fr; }
+      .bpsc-grid { grid-template-columns: 1fr; }
     }
 
     /* ─── SCROLL REVEAL ─── */
@@ -766,6 +832,7 @@
   <ul class="nav-links">
     <li><a href="#avance">Avance</a></li>
     <li><a href="#pantallas">App</a></li>
+    <li><a href="#biopsicosocial">BPSC</a></li>
     <li><a href="#tecnologia">Tecnología</a></li>
     <li><a href="#equipo">Equipo</a></li>
     <li>
@@ -968,32 +1035,32 @@
 
       <div class="screen-card">
         <div class="screen-img-wrap">
-          <img src="1776811563067_image.png" alt="Pantalla de Crear Cuenta - vacía" />
+          <img src="LOGINWT.jpeg" alt="Pantalla de Login" />
         </div>
         <div class="screen-info">
           <div class="screen-label">Iteración 1</div>
-          <div class="screen-name">Crear Cuenta</div>
-          <div class="screen-desc">Registro con username, correo institucional y contraseña. Diseño dark nativo.</div>
+          <div class="screen-name">Sign In</div>
+          <div class="screen-desc">Inicio de sesión con correo institucional @unbosque.edu.co y contraseña. Diseño dark nativo.</div>
         </div>
       </div>
 
       <div class="screen-card">
         <div class="screen-img-wrap">
-          <img src="1776811569138_image.png" alt="Pantalla de Crear Cuenta con datos y roles" />
+          <img src="CREARCUENTAWT.jpeg" alt="Pantalla de Crear Cuenta con datos y roles" />
         </div>
         <div class="screen-info">
           <div class="screen-label">Iteración 2</div>
-          <div class="screen-name">Selección de Rol</div>
+          <div class="screen-name">Crear Cuenta</div>
           <div class="screen-desc">Campos extendidos con nombre, apellido, correo institucional y selector de rol Pasajero / Conductor.</div>
         </div>
       </div>
 
       <div class="screen-card">
         <div class="screen-img-wrap">
-          <img src="1776811579128_image.png" alt="Verificación de correo OTP" />
+          <img src="VERIFICARCORREOWT.jpeg" alt="Verificación de correo OTP" />
         </div>
         <div class="screen-info">
-          <div class="screen-label">Iteración 1</div>
+          <div class="screen-label">Iteración 2</div>
           <div class="screen-name">Verificación OTP</div>
           <div class="screen-desc">Código de 6 dígitos enviado al correo institucional @unbosque.edu.co. Registro exitoso confirmado.</div>
         </div>
@@ -1001,12 +1068,71 @@
 
       <div class="screen-card">
         <div class="screen-img-wrap">
-          <img src="1776811583452_image.png" alt="Pantalla de Crear Cuenta versión limpia" />
+          <img src="PANTALLACARGAWT.jpeg" alt="Pantalla de carga Wheel-Trees" />
         </div>
         <div class="screen-info">
           <div class="screen-label">UI/UX</div>
-          <div class="screen-name">Estado Vacío</div>
-          <div class="screen-desc">Estado limpio del formulario con placeholders, íconos y coherencia visual en dark mode.</div>
+          <div class="screen-name">Splash Screen</div>
+          <div class="screen-desc">Pantalla de carga con logo y marca Wheel-Trees. Identidad visual coherente en dark mode.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- MODELOS BIOPSICOSOCIALES -->
+<section id="biopsicosocial">
+  <div class="section-inner">
+    <span class="section-tag reveal">Marco teórico</span>
+    <h2 class="section-title reveal">Modelos Biopsicosociales</h2>
+    <p class="section-body reveal">
+      El proyecto se fundamenta en el modelo biopsicosocial para comprender la problemática de movilidad desde sus dimensiones humanas, sociales y de contexto universitario.
+    </p>
+
+    <div class="bpsc-grid reveal">
+
+      <div class="bpsc-card">
+        <div class="bpsc-img-wrap">
+          <img src="MODELO BIOPSICOSOCIAL PROBLEMÁTICA.png" alt="Modelo Biopsicosocial de la Problemática" />
+        </div>
+        <div class="bpsc-info">
+          <div class="bpsc-label">Análisis</div>
+          <div class="bpsc-name">Problemática</div>
+          <div class="bpsc-desc">Representación biopsicosocial de los factores que generan la problemática de movilidad en la comunidad universitaria.</div>
+        </div>
+      </div>
+
+      <div class="bpsc-card">
+        <div class="bpsc-img-wrap">
+          <img src="MODELO BIOPSICOSOCIAL CONDUCTORES.png" alt="Modelo Biopsicosocial de Conductores" />
+        </div>
+        <div class="bpsc-info">
+          <div class="bpsc-label">Actores</div>
+          <div class="bpsc-name">Conductores</div>
+          <div class="bpsc-desc">Dimensiones biológicas, psicológicas y sociales que caracterizan al conductor dentro del sistema de carpooling universitario.</div>
+        </div>
+      </div>
+
+      <div class="bpsc-card">
+        <div class="bpsc-img-wrap">
+          <img src="MODELO BIOPSICOSOCIAL USUARIOS.png" alt="Modelo Biopsicosocial de Usuarios" />
+        </div>
+        <div class="bpsc-info">
+          <div class="bpsc-label">Actores</div>
+          <div class="bpsc-name">Usuarios / Pasajeros</div>
+          <div class="bpsc-desc">Análisis de los factores humanos y sociales que influyen en el comportamiento del pasajero dentro de la plataforma.</div>
+        </div>
+      </div>
+
+      <div class="bpsc-card">
+        <div class="bpsc-img-wrap">
+          <img src="MODELO BIOPSICOSOCIAL SOLUCION.png" alt="Modelo Biopsicosocial de la Solución" />
+        </div>
+        <div class="bpsc-info">
+          <div class="bpsc-label">Solución</div>
+          <div class="bpsc-name">Propuesta de Solución</div>
+          <div class="bpsc-desc">Modelo que justifica cómo Wheel-Trees aborda integralmente las dimensiones biopsicosociales identificadas en el análisis.</div>
         </div>
       </div>
 
@@ -1170,6 +1296,7 @@
     <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">GitHub</a>
     <a href="#avance">Avance</a>
     <a href="#pantallas">Capturas</a>
+    <a href="#biopsicosocial">BPSC</a>
     <a href="#tecnologia">Tecnología</a>
     <a href="#equipo">Equipo</a>
   </div>
