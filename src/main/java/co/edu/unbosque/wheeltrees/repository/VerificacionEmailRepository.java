@@ -18,4 +18,6 @@ public interface VerificacionEmailRepository extends JpaRepository<VerificacionE
 			String codigoOtp);
 
 	List<VerificacionEmail> findByUsuarioAndUsadoFalse(Usuario usuario);
+	
+	void deleteByUsuario(Usuario usuario);
 }

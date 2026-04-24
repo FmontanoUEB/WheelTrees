@@ -36,6 +36,21 @@ public class AuthService {
 	private static final String DOMINIO_INSTITUCIONAL = "@unbosque.edu.co";
 
 	@Transactional
+	public MensajeResponse eliminarUsuarioPorEmail(String email) {
+
+		Usuario usuario = usuarioRepository.findByEmail(email)
+				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+		// 🔥 ELIMINA TODAS las verificaciones (no solo algunas)
+		verificacionEmailRepository.deleteByUsuario(usuario);
+
+		// 🔥 AHORA sí elimina el usuario
+		usuarioRepository.delete(usuario);
+
+		return MensajeResponse.builder().mensaje("Usuario eliminado correctamente").exito(true).build();
+	}
+
+	@Transactional
 	public MensajeResponse registrar(RegistroRequest request) {
 
 		if (!request.getEmail().endsWith(DOMINIO_INSTITUCIONAL)) {

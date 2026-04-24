@@ -3,7 +3,6 @@ package co.edu.unbosque.wheeltrees.config;
 import co.edu.unbosque.wheeltrees.repository.UsuarioRepository;
 import co.edu.unbosque.wheeltrees.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,54 +20,65 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-   
     private final JwtFilter jwtFilter;
     private final UsuarioRepository usuarioRepository;
 
-   private static final String[] RUTAS_PUBLICAS = {
-        "/api/auth/**",
-        "/h2-console/**",
-
-        // Swagger
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/swagger-ui/index.html",
-        "/v3/api-docs/**",
-        "/swagger-resources/**",
-        "/webjars/**",
-        "/test/**"
-};
-
+    private static final String[] RUTAS_PUBLICAS = {
+            "/api/auth/**",
+            "/h2-console/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/test/**"
+    };
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    System.err.println("🔥 SECURITY CONFIG SI SE ESTA USANDO");
-    return http
-            .csrf(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.err.println("🔥 SECURITY CONFIG SI SE ESTA USANDO");
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <- NUEVO
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(RUTAS_PUBLICAS).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers ->
+                        headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+                .build();
+    }
 
-            .formLogin(AbstractHttpConfigurer::disable)   
-            .httpBasic(AbstractHttpConfigurer::disable)  
-
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(RUTAS_PUBLICAS).permitAll()
-                    .anyRequest().authenticated()
-            )
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .headers(headers ->
-                    headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-            )
-            .build();
-}
+    @Bean // <- NUEVO
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     public UserDetailsService userDetailsService() {

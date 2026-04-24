@@ -26,6 +26,13 @@ public class AuthController {
 
 	private final AuthService authService;
 
+	@Operation(summary = "Eliminar usuario por email")
+	@DeleteMapping("/eliminar")
+	public ResponseEntity<MensajeResponse> eliminarUsuario(@RequestParam @Email String email) {
+
+		return ResponseEntity.ok(authService.eliminarUsuarioPorEmail(email));
+	}
+
 	@Operation(summary = "Registrar usuario")
 	@PostMapping("/registrar")
 	public ResponseEntity<MensajeResponse> registrar(@Valid @RequestBody RegistroRequest request) {
@@ -46,9 +53,10 @@ public class AuthController {
 
 		return ResponseEntity.ok(authService.login(request));
 	}
+
 	@Operation(summary = "Reenviar OTP de verificación")
 	@PostMapping("/reenviar-otp")
 	public ResponseEntity<MensajeResponse> reenviarOtp(@RequestParam @Email String email) {
-	    return ResponseEntity.ok(authService.reenviarOtp(email));
+		return ResponseEntity.ok(authService.reenviarOtp(email));
 	}
 }
