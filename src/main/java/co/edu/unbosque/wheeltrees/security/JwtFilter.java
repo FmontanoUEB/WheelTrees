@@ -29,7 +29,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
 		String path = request.getServletPath();
 
-		// Permitir Swagger sin token
 		if (path.startsWith("/swagger") || path.startsWith("/v3/api-docs")) {
 			filterChain.doFilter(request, response);
 			return;
@@ -43,21 +42,34 @@ public class JwtFilter extends OncePerRequestFilter {
 		}
 
 		final String token = authHeader.substring(7);
-		final String email = jwtUtil.extraerEmail(token);
 
-		if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-			var usuario = usuarioRepository.findByEmail(email).orElse(null);
-
-			if (usuario != null && jwtUtil.validarToken(token)) {
-
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(usuario, null,
-						usuario.getAuthorities());
-
-				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-				SecurityContextHolder.getContext().setAuthentication(authToken);
+		try {
+			// ✅ VALIDAR primero
+			if (!jwtUtil.validarToken(token)) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				return;
 			}
+
+			// ✅ Luego extraer datos
+			final String email = jwtUtil.extraerEmail(token);
+
+			if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+				var usuario = usuarioRepository.findByEmail(email).orElse(null);
+
+				if (usuario != null) {
+					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(usuario,
+							null, usuario.getAuthorities());
+
+					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					SecurityContextHolder.getContext().setAuthentication(authToken);
+				}
+			}
+
+		} catch (Exception e) {
+			// 🔥 Manejo de token expirado o inválido
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
 		}
 
 		filterChain.doFilter(request, response);
