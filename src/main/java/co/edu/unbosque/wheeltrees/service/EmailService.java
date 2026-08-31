@@ -25,7 +25,7 @@ public class EmailService {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-			helper.setFrom("noreply@wheeltrees.site");
+			helper.setFrom("noReply@wheeltrees.site");
 			helper.setTo(destinatario);
 			helper.setSubject("Código de verificación — Wheel-Trees");
 			helper.setText(construirTextoPlano(nombre, otp), construirHtmlOtp(nombre, otp));

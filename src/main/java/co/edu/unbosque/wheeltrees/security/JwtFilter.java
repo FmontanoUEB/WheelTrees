@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import co.edu.unbosque.wheeltrees.repository.UsuarioRepository;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -23,13 +24,26 @@ public class JwtFilter extends OncePerRequestFilter {
 	private final JwtUtil jwtUtil;
 	private final UsuarioRepository usuarioRepository;
 
+	// 🔥 Debe coincidir con las rutas públicas de SecurityConfig.RUTAS_PUBLICAS
+	private static final List<String> RUTAS_SIN_JWT = List.of(
+			"/api/auth/",
+			"/h2-console/",
+			"/swagger",
+			"/v3/api-docs",
+			"/swagger-resources",
+			"/webjars/",
+			"/test/"
+	);
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
 		String path = request.getServletPath();
 
-		if (path.startsWith("/swagger") || path.startsWith("/v3/api-docs")) {
+		boolean esRutaPublica = RUTAS_SIN_JWT.stream().anyMatch(path::startsWith);
+
+		if (esRutaPublica) {
 			filterChain.doFilter(request, response);
 			return;
 		}
