@@ -43,6 +43,26 @@ public class Usuario implements UserDetails {
     @Column(name = "foto_perfil", length = 500)
     private String fotoPerfil;
 
+    // ── Dirección de casa ───────────────────────────────────────
+    @Column(name = "direccion_casa", length = 255)
+    private String direccionCasa;
+
+    @Column(name = "casa_lat")
+    private Double casaLat;
+
+    @Column(name = "casa_lng")
+    private Double casaLng;
+
+    // ── Dirección de trabajo/estudio ────────────────────────────
+    @Column(name = "direccion_trabajo", length = 255)
+    private String direccionTrabajo;
+
+    @Column(name = "trabajo_lat")
+    private Double trabajoLat;
+
+    @Column(name = "trabajo_lng")
+    private Double trabajoLng;
+
     @Column(name = "email_verificado", nullable = false)
     private boolean emailVerificado = false;
 

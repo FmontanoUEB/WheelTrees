@@ -60,6 +60,10 @@ public class ViajeService {
 		return toResponse(viajeRepository.save(viaje));
 	}
 
+	// FIX: se agregó @Transactional(readOnly = true). Sin esto, la sesión de
+	// Hibernate se cierra antes de que toResponse() acceda a las relaciones
+	// LAZY (conductor, vehiculo) -> LazyInitializationException ("no Session").
+	@Transactional(readOnly = true)
 	public List<ViajeResponse> buscarDisponibles(String origen, TipoVehiculo tipo) {
 		LocalDateTime ahora = LocalDateTime.now();
 
@@ -84,11 +88,15 @@ public class ViajeService {
 		return viajes.stream().map(this::toResponse).toList();
 	}
 
+	// FIX: mismo motivo que buscarDisponibles().
+	@Transactional(readOnly = true)
 	public List<ViajeResponse> misViajes(UUID conductorId) {
 		return viajeRepository.findByConductorIdOrderByFechaHoraSalidaAsc(conductorId).stream().map(this::toResponse)
 				.toList();
 	}
 
+	// FIX: mismo motivo que buscarDisponibles().
+	@Transactional(readOnly = true)
 	public ViajeResponse detalle(UUID viajeId) {
 		return toResponse(viajeRepository.findById(viajeId)
 				.orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado")));
@@ -135,13 +143,21 @@ public class ViajeService {
 		return toResponse(viajeRepository.save(viaje));
 	}
 
+	// FIX: se agregaron origenLat/origenLng/destinoLat/destinoLng al DTO de
+	// respuesta. Sin esto, el frontend nunca recibe coordenadas y no puede
+	// pintar el viaje en el mapa, aunque el error 500 ya esté resuelto.
 	private ViajeResponse toResponse(Viaje v) {
 		return ViajeResponse.builder().id(v.getId().toString())
 				.conductorNombre(v.getConductor().getNombre() + " " + v.getConductor().getApellido())
 				.vehiculoPlaca(v.getVehiculo().getPlaca())
 				.vehiculoDescripcion(v.getVehiculo().getMarca() + " " + v.getVehiculo().getModelo() + " "
 						+ v.getVehiculo().getColor())
-				.origenDescripcion(v.getOrigenDescripcion()).destinoDescripcion(v.getDestinoDescripcion())
+				.origenDescripcion(v.getOrigenDescripcion())
+				.origenLat(v.getOrigenLat())
+				.origenLng(v.getOrigenLng())
+				.destinoDescripcion(v.getDestinoDescripcion())
+				.destinoLat(v.getDestinoLat())
+				.destinoLng(v.getDestinoLng())
 				.fechaHoraSalida(v.getFechaHoraSalida()).cuposDisponibles(v.getCuposDisponibles())
 				.cuposTotales(v.getCuposTotales()).aportePorPasajero(v.getAportePorPasajero())
 				.estado(v.getEstado().name()).notas(v.getNotas()).build();

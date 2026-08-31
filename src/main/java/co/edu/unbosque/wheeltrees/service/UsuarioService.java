@@ -27,6 +27,12 @@ public class UsuarioService {
         u.setNombre(request.getNombre());
         u.setApellido(request.getApellido());
         u.setFotoPerfil(request.getFotoPerfil());
+        u.setDireccionCasa(request.getDireccionCasa());
+        u.setCasaLat(request.getCasaLat());
+        u.setCasaLng(request.getCasaLng());
+        u.setDireccionTrabajo(request.getDireccionTrabajo());
+        u.setTrabajoLat(request.getTrabajoLat());
+        u.setTrabajoLng(request.getTrabajoLng());
         return toResponse(usuarioRepository.save(u));
     }
 
@@ -47,6 +53,12 @@ public class UsuarioService {
                 .rol(u.getRol().name())
                 .fotoPerfil(u.getFotoPerfil())
                 .emailVerificado(u.isEmailVerificado())
+                .direccionCasa(u.getDireccionCasa())
+                .casaLat(u.getCasaLat())
+                .casaLng(u.getCasaLng())
+                .direccionTrabajo(u.getDireccionTrabajo())
+                .trabajoLat(u.getTrabajoLat())
+                .trabajoLng(u.getTrabajoLng())
                 .build();
     }
 }
