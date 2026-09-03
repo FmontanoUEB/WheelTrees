@@ -290,7 +290,7 @@
 
     .progress-bar {
       height: 100%;
-      width: 48%;
+      width: 96%;
       background: linear-gradient(90deg, var(--green-dim), var(--green));
       border-radius: 100px;
       position: relative;
@@ -743,6 +743,27 @@
       .screens-grid { grid-template-columns: 1fr 1fr; }
     }
 
+    /* ─── VIDEO SECTION ─── */
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 860px;
+      margin: 3rem auto 0;
+      aspect-ratio: 16/9;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      background: #000;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     /* ─── SCROLL REVEAL ─── */
     .reveal {
       opacity: 0;
@@ -765,12 +786,17 @@
   </a>
   <ul class="nav-links">
     <li><a href="#avance">Avance</a></li>
-    <li><a href="#pantallas">App</a></li>
+    <li><a href="#video">Video</a></li>
     <li><a href="#tecnologia">Tecnología</a></li>
     <li><a href="#equipo">Equipo</a></li>
     <li>
       <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="nav-cta">
-        ⭐ GitHub
+        Backend
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="nav-cta">
+        Frontend
       </a>
     </li>
   </ul>
@@ -783,7 +809,7 @@
 
   <div class="badge">
     <span class="badge-dot"></span>
-    En construcción · Semana 12 / 25
+    En construcción · Semana 24 / 25
   </div>
 
   <h1>
@@ -798,7 +824,10 @@
 
   <div class="hero-actions">
     <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary">
-      Ver en GitHub →
+      Backend →
+    </a>
+    <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="btn-primary">
+      Frontend →
     </a>
     <a href="#avance" class="btn-secondary">
       Ver avances ↓
@@ -811,22 +840,22 @@
   <div class="progress-inner">
     <div>
       <div class="progress-label">Progreso general del proyecto</div>
-      <div class="progress-title">Semana 12 de 25 — Fase III: Construcción en curso</div>
+      <div class="progress-title">Semana 24 de 25 — Fase IV: Pruebas en curso</div>
       <div style="margin-bottom:.5rem; font-size:.8rem; color:var(--muted);">
-        Fases I (Análisis) y II (Diseño) completadas · Iteraciones 1 y 2 de construcción funcionales
+        Fases I (Análisis), II (Diseño) y III (Construcción) completadas · Pruebas estáticas y dinámicas en ejecución
       </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar"></div>
       </div>
       <div style="display:flex; justify-content:space-between; margin-top:.4rem; font-size:.72rem; color:var(--muted);">
         <span>Inicio</span>
-        <span style="color:var(--green); font-weight:600;">48% completado</span>
+        <span style="color:var(--green); font-weight:600;">96% completado</span>
         <span>Cierre</span>
       </div>
     </div>
     <div class="progress-stats">
       <div class="stat">
-        <div class="stat-num">2</div>
+        <div class="stat-num">3</div>
         <div class="stat-lbl">Fases<br/>completadas</div>
       </div>
       <div class="stat">
@@ -851,7 +880,7 @@
     <span class="section-tag reveal">Cronograma</span>
     <h2 class="section-title reveal">Estado actual del proyecto</h2>
     <p class="section-body reveal">
-      El proyecto avanza según el cronograma planificado de 25 semanas bajo metodología Lean Startup. Aquí el estado real a la semana 12.
+      El proyecto avanza según el cronograma planificado de 25 semanas bajo metodología Lean Startup. Aquí el estado real a la semana 24.
     </p>
 
     <div class="timeline reveal">
@@ -889,11 +918,11 @@
         </div>
       </div>
 
-      <div class="tl-item active">
+      <div class="tl-item done">
         <div class="tl-week">W9–W12</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">⚡ En curso — Semana actual</div>
+          <div class="tl-phase">✓ Completada</div>
           <div class="tl-name">Fase III — Construcción (Iteraciones 1 & 2)</div>
           <div class="tl-desc">Registro de cuenta, login, verificación de correo institucional con OTP, gestión de perfiles para conductor y pasajero. Autenticación funcional en iOS y Android.</div>
           <div class="tl-pills">
@@ -905,32 +934,32 @@
         </div>
       </div>
 
-      <div class="tl-item">
+      <div class="tl-item done">
         <div class="tl-week">W13–W20</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">✓ Completada</div>
           <div class="tl-name">Fase III — Construcción (Iteraciones 3, 4 & 5)</div>
-          <div class="tl-desc">Publicación y búsqueda de viajes, seguridad y notificaciones push, integración de Google Maps, integración total entre capas.</div>
+          <div class="tl-desc">Publicación y búsqueda de viajes, integración de Google Maps y rutas, gestión de reservas, e integración total entre capas frontend-backend.</div>
           <div class="tl-pills">
-            <span class="pill gray">Publicar viajes</span>
-            <span class="pill gray">Google Maps</span>
-            <span class="pill gray">Notificaciones</span>
-            <span class="pill gray">Calificaciones</span>
+            <span class="pill">Publicar viajes</span>
+            <span class="pill">Google Maps</span>
+            <span class="pill">Reservas</span>
+            <span class="pill">Integración completa</span>
           </div>
         </div>
       </div>
 
-      <div class="tl-item">
-        <div class="tl-week">W21–W23</div>
+      <div class="tl-item active">
+        <div class="tl-week">W21–W24</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">⚡ En curso — Semana actual</div>
           <div class="tl-name">Fase IV — Pruebas</div>
           <div class="tl-desc">Plan de pruebas, análisis estático, pruebas de integración, rendimiento, seguridad y aceptación con usuarios reales de la comunidad.</div>
           <div class="tl-pills">
-            <span class="pill gray">Pruebas estáticas</span>
-            <span class="pill gray">Pruebas dinámicas</span>
+            <span class="pill">Pruebas estáticas</span>
+            <span class="pill">Pruebas dinámicas</span>
             <span class="pill gray">ISO/IEC 25010</span>
           </div>
         </div>
@@ -940,7 +969,7 @@
         <div class="tl-week">W24–W25</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">Próximo</div>
           <div class="tl-name">Fase V — Piloto</div>
           <div class="tl-desc">Prueba piloto con 20 usuarios (10 conductores + 10 pasajeros), encuestas Likert 1–5 de percepción de seguridad, evaluación BPSC, cierre del proyecto.</div>
           <div class="tl-pills">
@@ -955,64 +984,26 @@
   </div>
 </section>
 
-<!-- SCREENS -->
-<section class="screens-section" id="pantallas">
+<!-- VIDEO -->
+<section id="video">
   <div class="section-inner">
-    <span class="section-tag reveal">La aplicación</span>
-    <h2 class="section-title reveal">Capturas reales del desarrollo</h2>
+    <span class="section-tag reveal">Demo</span>
+    <h2 class="section-title reveal">Video de avance del proyecto</h2>
     <p class="section-body reveal">
-      React Native con un solo código base para iOS y Android. Dark theme nativo, diseño limpio y flujos pensados para la comunidad universitaria.
+      Recorrido en video del estado actual de Wheel-Trees a la semana 24, con las funcionalidades implementadas y las pruebas en curso.
     </p>
-
-    <div class="screens-grid reveal">
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="1776811563067_image.png" alt="Pantalla de Crear Cuenta - vacía" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 1</div>
-          <div class="screen-name">Crear Cuenta</div>
-          <div class="screen-desc">Registro con username, correo institucional y contraseña. Diseño dark nativo.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="1776811569138_image.png" alt="Pantalla de Crear Cuenta con datos y roles" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 2</div>
-          <div class="screen-name">Selección de Rol</div>
-          <div class="screen-desc">Campos extendidos con nombre, apellido, correo institucional y selector de rol Pasajero / Conductor.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="1776811579128_image.png" alt="Verificación de correo OTP" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 1</div>
-          <div class="screen-name">Verificación OTP</div>
-          <div class="screen-desc">Código de 6 dígitos enviado al correo institucional @unbosque.edu.co. Registro exitoso confirmado.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="1776811583452_image.png" alt="Pantalla de Crear Cuenta versión limpia" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">UI/UX</div>
-          <div class="screen-name">Estado Vacío</div>
-          <div class="screen-desc">Estado limpio del formulario con placeholders, íconos y coherencia visual en dark mode.</div>
-        </div>
-      </div>
-
+    <div class="video-wrap reveal">
+      <iframe
+        src="https://www.youtube.com/embed/kXWK_E6k_n4"
+        title="Wheel-Trees — Video de avance"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin">
+      </iframe>
     </div>
   </div>
 </section>
+
 
 <!-- TECH STACK -->
 <section id="tecnologia">
@@ -1153,9 +1144,12 @@
         <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem;">Universidad El Bosque</div>
         <div style="font-size:.8rem; color:var(--muted);">Programa de Ingeniería de Sistemas · Facultad de Ingeniería · Bogotá, 2026</div>
       </div>
-      <div style="margin-left:auto;">
+      <div style="margin-left:auto; display:flex; gap:.7rem; flex-wrap:wrap;">
         <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary" style="font-size:.85rem; padding:.6rem 1.2rem;">
-          Repositorio GitHub →
+          Repo Backend →
+        </a>
+        <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="btn-primary" style="font-size:.85rem; padding:.6rem 1.2rem;">
+          Repo Frontend →
         </a>
       </div>
     </div>
@@ -1167,9 +1161,10 @@
   <div class="footer-logo">Wheel<span>-Trees</span></div>
   <div class="footer-sub">Aplicación móvil de transporte de vehículo compartido · Universidad El Bosque · 2026</div>
   <div class="footer-links">
-    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">GitHub</a>
+    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">Backend</a>
+    <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank">Frontend</a>
     <a href="#avance">Avance</a>
-    <a href="#pantallas">Capturas</a>
+    <a href="#video">Video</a>
     <a href="#tecnologia">Tecnología</a>
     <a href="#equipo">Equipo</a>
   </div>
