@@ -150,8 +150,6 @@ public class ReservaService {
 				.fechaHoraSalida(r.getViaje().getFechaHoraSalida())
 				.pasajeroNombre(r.getPasajero().getNombre() + " " + r.getPasajero().getApellido())
 				.pasajeroEmail(r.getPasajero().getEmail())
-				.conductorId(r.getViaje().getConductor().getId().toString())
-				.conductorNombre(r.getViaje().getConductor().getNombre() + " " + r.getViaje().getConductor().getApellido())
 				.estado(r.getEstado().name())
 				.notasPasajero(r.getNotasPasajero())
 				.creadoEn(r.getCreadoEn())

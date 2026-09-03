@@ -41,8 +41,6 @@ public class ReservaDTO {
 		private LocalDateTime fechaHoraSalida;
 		private String pasajeroNombre;
 		private String pasajeroEmail;
-		private String conductorId;
-		private String conductorNombre;
 		private String estado;
 		private String notasPasajero;
 		private LocalDateTime creadoEn;

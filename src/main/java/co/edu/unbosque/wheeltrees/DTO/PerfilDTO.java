@@ -14,12 +14,6 @@ public class PerfilDTO {
         private String rol;
         private String fotoPerfil;
         private boolean emailVerificado;
-        private String direccionCasa;
-        private Double casaLat;
-        private Double casaLng;
-        private String direccionTrabajo;
-        private Double trabajoLat;
-        private Double trabajoLng;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -29,16 +23,6 @@ public class PerfilDTO {
         @NotBlank @Size(min = 2, max = 100)
         private String apellido;
         private String fotoPerfil;
-
-        @Size(max = 255)
-        private String direccionCasa;
-        private Double casaLat;
-        private Double casaLng;
-
-        @Size(max = 255)
-        private String direccionTrabajo;
-        private Double trabajoLat;
-        private Double trabajoLng;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

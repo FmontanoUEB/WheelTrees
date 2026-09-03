@@ -33,17 +33,6 @@ public class AuthDTO {
 
         @NotNull(message = "El rol es obligatorio")
         private RolUsuario rol;
-
-        // ── Direcciones (opcionales al registrarse) ─────────────
-        @Size(max = 255)
-        private String direccionCasa;
-        private Double casaLat;
-        private Double casaLng;
-
-        @Size(max = 255)
-        private String direccionTrabajo;
-        private Double trabajoLat;
-        private Double trabajoLng;
     }
 
     // ── Login ─────────────────────────────────────────────────────
@@ -92,8 +81,6 @@ public class AuthDTO {
         private String email;
         private String rol;
         private String fotoPerfil;
-        private String direccionCasa;
-        private String direccionTrabajo;
     }
 
     // ── Response genérico ─────────────────────────────────────────
