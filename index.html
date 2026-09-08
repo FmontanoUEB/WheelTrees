@@ -5,7 +5,776 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wheel-Trees — Aplicación Móvil de Transporte Compartido</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0b;
+      --surface:   #111113;
+      --card:      #16161a;
+      --border:    #242428;
+      --green:     #22c55e;
+      --green-dim: #16a34a;
+      --green-glow:#22c55e33;
+      --text:      #f0f0f2;
+      --muted:     #8888a0;
+      --accent:    #34d399;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE TEXTURE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: .5;
+    }
+
+    /* ─── HEADER / NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 5vw;
+      background: rgba(10,10,11,.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--green);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 400;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem 1.2rem;
+      background: var(--green);
+      color: #000 !important;
+      border-radius: 6px;
+      font-weight: 500 !important;
+      text-transform: none !important;
+      font-size: .85rem !important;
+      letter-spacing: 0 !important;
+      transition: background .2s, transform .15s !important;
+    }
+    .nav-cta:hover { background: var(--accent) !important; transform: translateY(-1px); color: #000 !important; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 5vw 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(34,197,94,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .35rem .9rem;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.25);
+      border-radius: 100px;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      animation: fadeUp .6s ease both;
+    }
+
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 1.0;
+      letter-spacing: -.04em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .6s .1s ease both;
+    }
+
+    h1 span { color: var(--green); }
+
+    .hero-sub {
+      max-width: 52ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 400;
+      margin-bottom: 2.5rem;
+      animation: fadeUp .6s .2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp .6s .3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1.8rem;
+      background: var(--green);
+      color: #000;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 0 0 0 var(--green-glow);
+    }
+    .btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--green-glow);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1.8rem;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 400;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: border-color .2s, transform .15s;
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── PROGRESS STRIP ─── */
+    .progress-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 5vw;
+    }
+
+    .progress-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .progress-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .5rem;
+    }
+
+    .progress-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 100px;
+      height: 8px;
+      overflow: hidden;
+      max-width: 600px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 96%;
+      background: linear-gradient(90deg, var(--green-dim), var(--green));
+      border-radius: 100px;
+      position: relative;
+      animation: growBar 1.2s .5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @keyframes growBar {
+      from { width: 0; }
+      to   { width: 48%; }
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 12px; height: 12px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .progress-stats {
+      display: flex;
+      gap: 2.5rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: .2rem;
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 6rem 5vw; }
+
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+
+    .section-tag {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .8rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      letter-spacing: -.03em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .section-body {
+      color: var(--muted);
+      max-width: 55ch;
+      font-size: .95rem;
+      margin-bottom: 3rem;
+    }
+
+    /* ─── TIMELINE ─── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 110px;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .tl-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 2rem;
+      padding: 1.5rem 0;
+      position: relative;
+    }
+
+    .tl-week {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-align: right;
+      padding-top: .1rem;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: 104px;
+      top: 1.85rem;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--border);
+      z-index: 1;
+    }
+
+    .tl-item.done .tl-dot {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .tl-item.active .tl-dot {
+      background: var(--bg);
+      border-color: var(--green);
+      box-shadow: 0 0 14px var(--green);
+      animation: dotPulse 2s infinite;
+    }
+
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 6px var(--green); }
+      50% { box-shadow: 0 0 18px var(--green), 0 0 30px var(--green-glow); }
+    }
+
+    .tl-content {
+      padding-left: 1.5rem;
+    }
+
+    .tl-phase {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .3rem;
+    }
+
+    .tl-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+
+    .tl-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      max-width: 50ch;
+    }
+
+    .tl-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-top: .6rem;
+    }
+
+    .pill {
+      padding: .2rem .6rem;
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 4px;
+      font-size: .7rem;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .pill.gray {
+      background: rgba(136,136,160,.08);
+      border-color: rgba(136,136,160,.2);
+      color: var(--muted);
+    }
+
+    /* ─── SCREENS SECTION ─── */
+    .screens-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .screen-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+    .screen-card:hover {
+      border-color: rgba(34,197,94,.35);
+      transform: translateY(-4px);
+    }
+
+    .screen-img-wrap {
+      width: 100%;
+      aspect-ratio: 9/19;
+      overflow: hidden;
+      background: #0d0d10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .screen-info {
+      padding: 1rem 1.1rem 1.2rem;
+    }
+
+    .screen-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: .3rem;
+    }
+
+    .screen-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      line-height: 1.2;
+      margin-bottom: .3rem;
+    }
+
+    .screen-desc {
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─── TECH STACK ─── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 3rem;
+    }
+
+    .tech-item {
+      background: var(--card);
+      padding: 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .tech-icon {
+      width: 40px; height: 40px;
+      background: rgba(34,197,94,.1);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .tech-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      margin-bottom: .2rem;
+    }
+
+    .tech-role {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    /* ─── CONTEXT SECTION ─── */
+    .context-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .context-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+    }
+
+    .context-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .context-card-title span {
+      font-size: 1.2rem;
+    }
+
+    .context-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .context-list li {
+      display: flex;
+      gap: .6rem;
+      font-size: .85rem;
+      color: var(--muted);
+      align-items: flex-start;
+    }
+
+    .context-list li::before {
+      content: '→';
+      color: var(--green);
+      flex-shrink: 0;
+      margin-top: .05rem;
+    }
+
+    /* ─── TEAM ─── */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .team-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+      transition: border-color .25s;
+    }
+    .team-card:hover { border-color: rgba(34,197,94,.35); }
+
+    .team-avatar {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--green-dim), var(--green));
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #000;
+      margin-bottom: 1rem;
+    }
+
+    .team-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .2rem;
+    }
+
+    .team-role {
+      font-size: .8rem;
+      color: var(--green);
+      margin-bottom: .6rem;
+    }
+
+    .team-email {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 3rem 5vw;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -.03em;
+      margin-bottom: .5rem;
+    }
+    .footer-logo span { color: var(--green); }
+
+    .footer-sub {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: .8rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--green); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .progress-inner { grid-template-columns: 1fr; }
+      .progress-stats { justify-content: center; }
+      .screens-grid { grid-template-columns: repeat(2, 1fr); }
+      .context-grid { grid-template-columns: 1fr; }
+      .timeline::before { left: 70px; }
+      .tl-item { grid-template-columns: 70px 1fr; gap: 1rem; }
+      .tl-dot { left: 64px; }
+    }
+
+    @media (max-width: 480px) {
+      .screens-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ─── VIDEO SECTION ─── */
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 860px;
+      margin: 3rem auto 0;
+      aspect-ratio: 16/9;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      background: #000;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -17,13 +786,17 @@
   </a>
   <ul class="nav-links">
     <li><a href="#avance">Avance</a></li>
-    <li><a href="#pantallas">App</a></li>
-    <li><a href="#biopsicosocial">BPSC</a></li>
+    <li><a href="#video">Video</a></li>
     <li><a href="#tecnologia">Tecnología</a></li>
     <li><a href="#equipo">Equipo</a></li>
     <li>
       <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="nav-cta">
-        ⭐ GitHub
+        Backend
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="nav-cta">
+        Frontend
       </a>
     </li>
   </ul>
@@ -36,7 +809,7 @@
 
   <div class="badge">
     <span class="badge-dot"></span>
-    En construcción · Semana 12 / 25
+    En construcción · Semana 24 / 25
   </div>
 
   <h1>
@@ -51,7 +824,10 @@
 
   <div class="hero-actions">
     <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary">
-      Ver en GitHub →
+      Backend →
+    </a>
+    <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="btn-primary">
+      Frontend →
     </a>
     <a href="#avance" class="btn-secondary">
       Ver avances ↓
@@ -64,22 +840,22 @@
   <div class="progress-inner">
     <div>
       <div class="progress-label">Progreso general del proyecto</div>
-      <div class="progress-title">Semana 12 de 25 — Fase III: Construcción en curso</div>
+      <div class="progress-title">Semana 24 de 25 — Fase IV: Pruebas en curso</div>
       <div style="margin-bottom:.5rem; font-size:.8rem; color:var(--muted);">
-        Fases I (Análisis) y II (Diseño) completadas · Iteraciones 1 y 2 de construcción funcionales
+        Fases I (Análisis), II (Diseño) y III (Construcción) completadas · Pruebas estáticas y dinámicas en ejecución
       </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar"></div>
       </div>
       <div style="display:flex; justify-content:space-between; margin-top:.4rem; font-size:.72rem; color:var(--muted);">
         <span>Inicio</span>
-        <span style="color:var(--green); font-weight:600;">48% completado</span>
+        <span style="color:var(--green); font-weight:600;">96% completado</span>
         <span>Cierre</span>
       </div>
     </div>
     <div class="progress-stats">
       <div class="stat">
-        <div class="stat-num">2</div>
+        <div class="stat-num">3</div>
         <div class="stat-lbl">Fases<br/>completadas</div>
       </div>
       <div class="stat">
@@ -104,7 +880,7 @@
     <span class="section-tag reveal">Cronograma</span>
     <h2 class="section-title reveal">Estado actual del proyecto</h2>
     <p class="section-body reveal">
-      El proyecto avanza según el cronograma planificado de 25 semanas bajo metodología Lean Startup. Aquí el estado real a la semana 12.
+      El proyecto avanza según el cronograma planificado de 25 semanas bajo metodología Lean Startup. Aquí el estado real a la semana 24.
     </p>
 
     <div class="timeline reveal">
@@ -142,11 +918,11 @@
         </div>
       </div>
 
-      <div class="tl-item active">
+      <div class="tl-item done">
         <div class="tl-week">W9–W12</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">⚡ En curso — Semana actual</div>
+          <div class="tl-phase">✓ Completada</div>
           <div class="tl-name">Fase III — Construcción (Iteraciones 1 & 2)</div>
           <div class="tl-desc">Registro de cuenta, login, verificación de correo institucional con OTP, gestión de perfiles para conductor y pasajero. Autenticación funcional en iOS y Android.</div>
           <div class="tl-pills">
@@ -158,32 +934,32 @@
         </div>
       </div>
 
-      <div class="tl-item">
+      <div class="tl-item done">
         <div class="tl-week">W13–W20</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">✓ Completada</div>
           <div class="tl-name">Fase III — Construcción (Iteraciones 3, 4 & 5)</div>
-          <div class="tl-desc">Publicación y búsqueda de viajes, seguridad y notificaciones push, integración de Google Maps, integración total entre capas.</div>
+          <div class="tl-desc">Publicación y búsqueda de viajes, integración de Google Maps y rutas, gestión de reservas, e integración total entre capas frontend-backend.</div>
           <div class="tl-pills">
-            <span class="pill gray">Publicar viajes</span>
-            <span class="pill gray">Google Maps</span>
-            <span class="pill gray">Notificaciones</span>
-            <span class="pill gray">Calificaciones</span>
+            <span class="pill">Publicar viajes</span>
+            <span class="pill">Google Maps</span>
+            <span class="pill">Reservas</span>
+            <span class="pill">Integración completa</span>
           </div>
         </div>
       </div>
 
-      <div class="tl-item">
-        <div class="tl-week">W21–W23</div>
+      <div class="tl-item active">
+        <div class="tl-week">W21–W24</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">⚡ En curso — Semana actual</div>
           <div class="tl-name">Fase IV — Pruebas</div>
           <div class="tl-desc">Plan de pruebas, análisis estático, pruebas de integración, rendimiento, seguridad y aceptación con usuarios reales de la comunidad.</div>
           <div class="tl-pills">
-            <span class="pill gray">Pruebas estáticas</span>
-            <span class="pill gray">Pruebas dinámicas</span>
+            <span class="pill">Pruebas estáticas</span>
+            <span class="pill">Pruebas dinámicas</span>
             <span class="pill gray">ISO/IEC 25010</span>
           </div>
         </div>
@@ -193,7 +969,7 @@
         <div class="tl-week">W24–W25</div>
         <div class="tl-dot"></div>
         <div class="tl-content">
-          <div class="tl-phase">Pendiente</div>
+          <div class="tl-phase">Próximo</div>
           <div class="tl-name">Fase V — Piloto</div>
           <div class="tl-desc">Prueba piloto con 20 usuarios (10 conductores + 10 pasajeros), encuestas Likert 1–5 de percepción de seguridad, evaluación BPSC, cierre del proyecto.</div>
           <div class="tl-pills">
@@ -208,123 +984,26 @@
   </div>
 </section>
 
-<!-- SCREENS -->
-<section class="screens-section" id="pantallas">
+<!-- VIDEO -->
+<section id="video">
   <div class="section-inner">
-    <span class="section-tag reveal">La aplicación</span>
-    <h2 class="section-title reveal">Capturas reales del desarrollo</h2>
+    <span class="section-tag reveal">Demo</span>
+    <h2 class="section-title reveal">Video de avance del proyecto</h2>
     <p class="section-body reveal">
-      React Native con un solo código base para iOS y Android. Dark theme nativo, diseño limpio y flujos pensados para la comunidad universitaria.
+      Recorrido en video del estado actual de Wheel-Trees a la semana 24, con las funcionalidades implementadas y las pruebas en curso.
     </p>
-
-    <div class="screens-grid reveal">
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="LOGINWT.jpeg" alt="Pantalla de Login" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 1</div>
-          <div class="screen-name">Sign In</div>
-          <div class="screen-desc">Inicio de sesión con correo institucional @unbosque.edu.co y contraseña. Diseño dark nativo.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="CREARCUENTAWT.jpeg" alt="Pantalla de Crear Cuenta con datos y roles" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 2</div>
-          <div class="screen-name">Crear Cuenta</div>
-          <div class="screen-desc">Campos extendidos con nombre, apellido, correo institucional y selector de rol Pasajero / Conductor.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="VERIFICARCORREOWT.jpeg" alt="Verificación de correo OTP" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">Iteración 2</div>
-          <div class="screen-name">Verificación OTP</div>
-          <div class="screen-desc">Código de 6 dígitos enviado al correo institucional @unbosque.edu.co. Registro exitoso confirmado.</div>
-        </div>
-      </div>
-
-      <div class="screen-card">
-        <div class="screen-img-wrap">
-          <img src="PANTALLACARGAWT.jpeg" alt="Pantalla de carga Wheel-Trees" />
-        </div>
-        <div class="screen-info">
-          <div class="screen-label">UI/UX</div>
-          <div class="screen-name">Splash Screen</div>
-          <div class="screen-desc">Pantalla de carga con logo y marca Wheel-Trees. Identidad visual coherente en dark mode.</div>
-        </div>
-      </div>
-
+    <div class="video-wrap reveal">
+      <iframe
+        src="https://www.youtube.com/embed/kXWK_E6k_n4"
+        title="Wheel-Trees — Video de avance"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin">
+      </iframe>
     </div>
   </div>
 </section>
 
-<!-- MODELOS BIOPSICOSOCIALES -->
-<section id="biopsicosocial">
-  <div class="section-inner">
-    <span class="section-tag reveal">Marco teórico</span>
-    <h2 class="section-title reveal">Modelos Biopsicosociales</h2>
-    <p class="section-body reveal">
-      El proyecto se fundamenta en el modelo biopsicosocial para comprender la problemática de movilidad desde sus dimensiones humanas, sociales y de contexto universitario.
-    </p>
-
-    <div class="bpsc-grid reveal">
-
-      <div class="bpsc-card">
-        <div class="bpsc-img-wrap">
-          <img src="MODELO BIOPSICOSICIAL PROBLEMATICA.png" alt="Modelo Biopsicosocial de la Problemática" />
-        </div>
-        <div class="bpsc-info">
-          <div class="bpsc-label">Análisis</div>
-          <div class="bpsc-name">Problemática</div>
-          <div class="bpsc-desc">Representación biopsicosocial de los factores que generan la problemática de movilidad en la comunidad universitaria.</div>
-        </div>
-      </div>
-
-      <div class="bpsc-card">
-        <div class="bpsc-img-wrap">
-          <img src="MODELO BIOPSICOSOCIAL CONDUCTORES.png" alt="Modelo Biopsicosocial de Conductores" />
-        </div>
-        <div class="bpsc-info">
-          <div class="bpsc-label">Actores</div>
-          <div class="bpsc-name">Conductores</div>
-          <div class="bpsc-desc">Dimensiones biológicas, psicológicas y sociales que caracterizan al conductor dentro del sistema de carpooling universitario.</div>
-        </div>
-      </div>
-
-      <div class="bpsc-card">
-        <div class="bpsc-img-wrap">
-          <img src="MODELO BIOPSICOSOCIAL USUARIOS.png" alt="Modelo Biopsicosocial de Usuarios" />
-        </div>
-        <div class="bpsc-info">
-          <div class="bpsc-label">Actores</div>
-          <div class="bpsc-name">Usuarios / Pasajeros</div>
-          <div class="bpsc-desc">Análisis de los factores humanos y sociales que influyen en el comportamiento del pasajero dentro de la plataforma.</div>
-        </div>
-      </div>
-
-      <div class="bpsc-card">
-        <div class="bpsc-img-wrap">
-          <img src="MODELO BIOPSICOSOCIAL SOLUCION.png" alt="Modelo Biopsicosocial de la Solución" />
-        </div>
-        <div class="bpsc-info">
-          <div class="bpsc-label">Solución</div>
-          <div class="bpsc-name">Propuesta de Solución</div>
-          <div class="bpsc-desc">Modelo que justifica cómo Wheel-Trees aborda integralmente las dimensiones biopsicosociales identificadas en el análisis.</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
 
 <!-- TECH STACK -->
 <section id="tecnologia">
@@ -346,14 +1025,14 @@
       <div class="tech-item">
         <div class="tech-icon">🟩</div>
         <div>
-          <div class="tech-name">SpringBoot</div>
+          <div class="tech-name">Node.js + Express</div>
           <div class="tech-role">Backend API REST</div>
         </div>
       </div>
       <div class="tech-item">
         <div class="tech-icon">🗄️</div>
         <div>
-          <div class="tech-name">SQL Server</div>
+          <div class="tech-name">MySQL</div>
           <div class="tech-role">Base de datos relacional</div>
         </div>
       </div>
@@ -465,9 +1144,12 @@
         <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem;">Universidad El Bosque</div>
         <div style="font-size:.8rem; color:var(--muted);">Programa de Ingeniería de Sistemas · Facultad de Ingeniería · Bogotá, 2026</div>
       </div>
-      <div style="margin-left:auto;">
+      <div style="margin-left:auto; display:flex; gap:.7rem; flex-wrap:wrap;">
         <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank" class="btn-primary" style="font-size:.85rem; padding:.6rem 1.2rem;">
-          Repositorio GitHub →
+          Repo Backend →
+        </a>
+        <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank" class="btn-primary" style="font-size:.85rem; padding:.6rem 1.2rem;">
+          Repo Frontend →
         </a>
       </div>
     </div>
@@ -479,20 +1161,14 @@
   <div class="footer-logo">Wheel<span>-Trees</span></div>
   <div class="footer-sub">Aplicación móvil de transporte de vehículo compartido · Universidad El Bosque · 2026</div>
   <div class="footer-links">
-    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">GitHub</a>
+    <a href="https://github.com/FmontanoUEB/WheelTrees" target="_blank">Backend</a>
+    <a href="https://github.com/Alejandrohzz/wheeltreesFrontend" target="_blank">Frontend</a>
     <a href="#avance">Avance</a>
-    <a href="#pantallas">Capturas</a>
-    <a href="#biopsicosocial">BPSC</a>
+    <a href="#video">Video</a>
     <a href="#tecnologia">Tecnología</a>
     <a href="#equipo">Equipo</a>
   </div>
 </footer>
-
-<!-- LIGHTBOX -->
-<div id="lightbox" onclick="closeLightbox()">
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
-</div>
 
 <script>
   // Scroll reveal
@@ -503,32 +1179,6 @@
     });
   }, { threshold: 0.1 });
   reveals.forEach(el => io.observe(el));
-
-  // Lightbox
-  function openLightbox(src, alt) {
-    const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    img.src = src;
-    img.alt = alt;
-    lb.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  // Cerrar con tecla Escape
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeLightbox();
-  });
-
-  // Agregar onclick a todas las imágenes de screen-card y bpsc-card
-  document.querySelectorAll('.screen-img-wrap img, .bpsc-img-wrap img').forEach(img => {
-    img.style.cursor = 'zoom-in';
-    img.addEventListener('click', () => openLightbox(img.src, img.alt));
-  });
 </script>
 </body>
 </html>
