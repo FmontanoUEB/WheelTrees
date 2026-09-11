@@ -71,6 +71,12 @@ public class ViajeController {
 		return ResponseEntity.ok(viajeService.completar(extraerId(authHeader), viajeId));
 	}
 
+	@Operation(summary = "Última ubicación conocida del viaje (pasajero/conductor)")
+	@GetMapping("/{viajeId}/ubicacion")
+	public ResponseEntity<UbicacionEvento> ubicacion(@PathVariable UUID viajeId) {
+		return ResponseEntity.ok(viajeService.obtenerUbicacion(viajeId));
+	}
+
 	@Operation(summary = "Cancelar un viaje (conductor)")
 	@DeleteMapping("/{viajeId}")
 	public ResponseEntity<Void> cancelar(@RequestHeader("Authorization") String authHeader,

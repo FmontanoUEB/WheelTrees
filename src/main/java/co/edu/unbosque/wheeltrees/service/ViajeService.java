@@ -4,6 +4,7 @@ import co.edu.unbosque.wheeltrees.DTO.ViajeDTO.*;
 import co.edu.unbosque.wheeltrees.model.*;
 import co.edu.unbosque.wheeltrees.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,8 @@ public class ViajeService {
 	private final ViajeRepository viajeRepository;
 	private final VehiculoRepository vehiculoRepository;
 	private final UsuarioRepository usuarioRepository;
+	private final ReservaRepository reservaRepository;
+	private final SimpMessagingTemplate messagingTemplate;
 
 	@Transactional
 	public ViajeResponse publicar(UUID conductorId, PublicarViajeRequest request) {
@@ -25,7 +28,10 @@ public class ViajeService {
 		Usuario conductor = usuarioRepository.findById(conductorId)
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-		if (conductor.getRol() != RolUsuario.CONDUCTOR) {
+		// Solo los usuarios con rol CONDUCTOR (o AMBOS, por compatibilidad con
+		// cuentas antiguas) pueden publicar viajes. Un PASAJERO solo puede
+		// buscar viajes disponibles y reservar cupos.
+		if (conductor.getRol() != RolUsuario.CONDUCTOR && conductor.getRol() != RolUsuario.AMBOS) {
 			throw new IllegalArgumentException("Solo los conductores pueden publicar viajes");
 		}
 
@@ -117,6 +123,7 @@ public class ViajeService {
 
 		viaje.setEstado(EstadoViaje.CANCELADO);
 		viajeRepository.save(viaje);
+		publicarEventoUbicacion(viaje);
 	}
 
 	@Transactional
@@ -128,7 +135,11 @@ public class ViajeService {
 		if (viaje.getEstado() != EstadoViaje.PROGRAMADO)
 			throw new IllegalArgumentException("El viaje no está en estado PROGRAMADO");
 		viaje.setEstado(EstadoViaje.EN_CURSO);
-		return toResponse(viajeRepository.save(viaje));
+		Viaje guardado = viajeRepository.save(viaje);
+		// Avisa a quien ya esté suscrito (pantalla de seguimiento del
+		// pasajero abierta esperando) que el viaje acaba de arrancar.
+		publicarEventoUbicacion(guardado);
+		return toResponse(guardado);
 	}
 
 	@Transactional
@@ -140,7 +151,79 @@ public class ViajeService {
 		if (viaje.getEstado() != EstadoViaje.EN_CURSO)
 			throw new IllegalArgumentException("El viaje no está EN_CURSO");
 		viaje.setEstado(EstadoViaje.COMPLETADO);
-		return toResponse(viajeRepository.save(viaje));
+
+		// Cualquier reserva CONFIRMADA sin decisión de abordaje (el conductor
+		// nunca la marcó explícitamente) se cierra como "no se presentó",
+		// para no dejar reservas en un estado ambiguo al terminar el viaje.
+		for (Reserva r : reservaRepository.findByViaje(viaje)) {
+			if (r.getEstado() == EstadoReserva.CONFIRMADA && r.getAbordo() == null) {
+				r.setAbordo(false);
+				reservaRepository.save(r);
+			}
+		}
+
+		Viaje guardado = viajeRepository.save(viaje);
+		// Avisa a la pantalla de seguimiento del pasajero que el viaje
+		// terminó, para que deje de esperar más posiciones y se cierre.
+		publicarEventoUbicacion(guardado);
+		return toResponse(guardado);
+	}
+
+	/**
+	 * El conductor reporta su posición GPS mientras el viaje está EN_CURSO.
+	 * Se llama desde el WebSocket (ViajeWebSocketController), no por REST,
+	 * porque llega muchas veces por minuto y no necesita respuesta HTTP.
+	 */
+	@Transactional
+	public UbicacionEvento actualizarUbicacion(UUID conductorId, UbicacionRequest request) {
+		Viaje viaje = viajeRepository.findById(request.getViajeId())
+				.orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado"));
+
+		if (!viaje.getConductor().getId().equals(conductorId)) {
+			throw new IllegalArgumentException("No tienes permiso para reportar la ubicación de este viaje");
+		}
+		if (viaje.getEstado() != EstadoViaje.EN_CURSO) {
+			throw new IllegalArgumentException("Solo se puede reportar ubicación mientras el viaje está EN_CURSO");
+		}
+
+		viaje.setUbicacionLat(request.getLat());
+		viaje.setUbicacionLng(request.getLng());
+		viaje.setUbicacionActualizadaEn(LocalDateTime.now());
+		Viaje guardado = viajeRepository.save(viaje);
+
+		UbicacionEvento evento = publicarEventoUbicacion(guardado);
+		return evento;
+	}
+
+	/**
+	 * GET de respaldo: última posición conocida del viaje. Lo usa la
+	 * pantalla del pasajero al abrir (antes de que llegue algo por
+	 * WebSocket) y sirve como plan B si el WebSocket no logra conectar.
+	 */
+	@Transactional(readOnly = true)
+	public UbicacionEvento obtenerUbicacion(UUID viajeId) {
+		Viaje viaje = viajeRepository.findById(viajeId)
+				.orElseThrow(() -> new IllegalArgumentException("Viaje no encontrado"));
+		return UbicacionEvento.builder()
+				.viajeId(viaje.getId().toString())
+				.estado(viaje.getEstado().name())
+				.lat(viaje.getUbicacionLat())
+				.lng(viaje.getUbicacionLng())
+				.actualizadaEn(viaje.getUbicacionActualizadaEn())
+				.build();
+	}
+
+	/** Arma y difunde el evento de ubicación/estado a /topic/viaje.{id}.ubicacion */
+	private UbicacionEvento publicarEventoUbicacion(Viaje viaje) {
+		UbicacionEvento evento = UbicacionEvento.builder()
+				.viajeId(viaje.getId().toString())
+				.estado(viaje.getEstado().name())
+				.lat(viaje.getUbicacionLat())
+				.lng(viaje.getUbicacionLng())
+				.actualizadaEn(viaje.getUbicacionActualizadaEn())
+				.build();
+		messagingTemplate.convertAndSend("/topic/viaje." + viaje.getId() + ".ubicacion", evento);
+		return evento;
 	}
 
 	// FIX: se agregaron origenLat/origenLng/destinoLat/destinoLng al DTO de
@@ -148,6 +231,7 @@ public class ViajeService {
 	// pintar el viaje en el mapa, aunque el error 500 ya esté resuelto.
 	private ViajeResponse toResponse(Viaje v) {
 		return ViajeResponse.builder().id(v.getId().toString())
+				.conductorId(v.getConductor().getId().toString())
 				.conductorNombre(v.getConductor().getNombre() + " " + v.getConductor().getApellido())
 				.vehiculoPlaca(v.getVehiculo().getPlaca())
 				.vehiculoDescripcion(v.getVehiculo().getMarca() + " " + v.getVehiculo().getModelo() + " "
@@ -160,6 +244,8 @@ public class ViajeService {
 				.destinoLng(v.getDestinoLng())
 				.fechaHoraSalida(v.getFechaHoraSalida()).cuposDisponibles(v.getCuposDisponibles())
 				.cuposTotales(v.getCuposTotales()).aportePorPasajero(v.getAportePorPasajero())
-				.estado(v.getEstado().name()).notas(v.getNotas()).build();
+				.estado(v.getEstado().name()).notas(v.getNotas())
+				.ubicacionLat(v.getUbicacionLat()).ubicacionLng(v.getUbicacionLng())
+				.ubicacionActualizadaEn(v.getUbicacionActualizadaEn()).build();
 	}
 }

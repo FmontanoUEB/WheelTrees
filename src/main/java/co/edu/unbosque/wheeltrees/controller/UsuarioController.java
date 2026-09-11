@@ -37,6 +37,14 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.actualizarPerfil(extraerId(authHeader), request));
     }
 
+    @Operation(summary = "Cambiar rol del usuario")
+    @PatchMapping("/me/rol")
+    public ResponseEntity<PerfilResponse> actualizarRol(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody ActualizarRolRequest request) {
+        return ResponseEntity.ok(usuarioService.actualizarRol(extraerId(authHeader), request.getRol()));
+    }
+
     @Operation(summary = "Actualizar FCM token (notificaciones push)")
     @PatchMapping("/me/fcm-token")
     public ResponseEntity<Void> actualizarFcmToken(

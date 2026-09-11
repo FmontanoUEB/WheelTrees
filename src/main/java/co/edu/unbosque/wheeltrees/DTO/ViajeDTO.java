@@ -22,6 +22,7 @@ public class ViajeDTO {
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class ViajeResponse {
         private String id;
+        private String conductorId;
         private String conductorNombre;
         private String vehiculoPlaca;
         private String vehiculoDescripcion;
@@ -37,5 +38,38 @@ public class ViajeDTO {
         private BigDecimal aportePorPasajero;
         private String estado;
         private String notas;
+        private Double ubicacionLat;
+        private Double ubicacionLng;
+        private LocalDateTime ubicacionActualizadaEn;
+    }
+
+    /** Payload que el conductor publica por WebSocket (/app/viaje.ubicacion). */
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class UbicacionRequest {
+        @NotNull private UUID viajeId;
+        @NotNull private Double lat;
+        @NotNull private Double lng;
+    }
+
+    /**
+     * Evento que se retransmite por /topic/viaje.{id}.ubicacion y que
+     * también devuelve el GET de fallback. Sirve tanto para posiciones
+     * (lat/lng no nulos) como para avisos de cambio de estado del viaje
+     * (iniciar/completar/cancelar), para que la pantalla del pasajero sepa
+     * cuándo empezar y cuándo dejar de escuchar.
+     */
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class UbicacionEvento {
+        private String viajeId;
+        private String estado;
+        private Double lat;
+        private Double lng;
+        private LocalDateTime actualizadaEn;
+    }
+
+    /** Error de negocio enviado por la cola privada del WebSocket de viaje. */
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class ViajeError {
+        private String mensaje;
     }
 }

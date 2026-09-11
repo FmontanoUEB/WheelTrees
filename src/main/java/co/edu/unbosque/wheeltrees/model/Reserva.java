@@ -30,6 +30,14 @@ public class Reserva {
 	@Column(name = "estado", nullable = false)
 	private EstadoReserva estado = EstadoReserva.PENDIENTE;
 
+	/**
+	 * Solo tiene sentido una vez el viaje está EN_CURSO: null = el conductor
+	 * todavía no decide, true = el pasajero abordó, false = no se presentó
+	 * en el punto de encuentro.
+	 */
+	@Column(name = "abordo")
+	private Boolean abordo;
+
 	@Column(name = "notas_pasajero", length = 300)
 	private String notasPasajero;
 

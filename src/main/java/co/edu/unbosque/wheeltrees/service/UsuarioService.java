@@ -2,6 +2,7 @@ package co.edu.unbosque.wheeltrees.service;
 
 import co.edu.unbosque.wheeltrees.DTO.PerfilDTO.*;
 import co.edu.unbosque.wheeltrees.model.Usuario;
+import co.edu.unbosque.wheeltrees.model.RolUsuario;
 import co.edu.unbosque.wheeltrees.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,32 @@ public class UsuarioService {
         u.setNombre(request.getNombre());
         u.setApellido(request.getApellido());
         u.setFotoPerfil(request.getFotoPerfil());
+        u.setDireccionCasa(request.getDireccionCasa());
+        u.setCasaLat(request.getCasaLat());
+        u.setCasaLng(request.getCasaLng());
+        u.setDireccionTrabajo(request.getDireccionTrabajo());
+        u.setTrabajoLat(request.getTrabajoLat());
+        u.setTrabajoLng(request.getTrabajoLng());
+        return toResponse(usuarioRepository.save(u));
+    }
+
+    @Transactional
+    public PerfilResponse actualizarRol(UUID usuarioId, String rol) {
+        Usuario u = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        final RolUsuario nuevoRol;
+        try {
+            nuevoRol = RolUsuario.valueOf(rol.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Rol no válido. Usa CONDUCTOR o PASAJERO");
+        }
+
+        if (nuevoRol != RolUsuario.CONDUCTOR && nuevoRol != RolUsuario.PASAJERO) {
+            throw new IllegalArgumentException("El rol debe ser CONDUCTOR o PASAJERO");
+        }
+
+        u.setRol(nuevoRol);
         return toResponse(usuarioRepository.save(u));
     }
 
@@ -47,6 +74,12 @@ public class UsuarioService {
                 .rol(u.getRol().name())
                 .fotoPerfil(u.getFotoPerfil())
                 .emailVerificado(u.isEmailVerificado())
+                .direccionCasa(u.getDireccionCasa())
+                .casaLat(u.getCasaLat())
+                .casaLng(u.getCasaLng())
+                .direccionTrabajo(u.getDireccionTrabajo())
+                .trabajoLat(u.getTrabajoLat())
+                .trabajoLng(u.getTrabajoLng())
                 .build();
     }
 }

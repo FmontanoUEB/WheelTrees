@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,12 +27,21 @@ public class VehiculoService {
         Usuario conductor = usuarioRepository.findById(conductorId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        if (conductor.getRol() != RolUsuario.CONDUCTOR) {
+        // Solo los usuarios con rol CONDUCTOR pueden registrar vehículos.
+        if (conductor.getRol() != RolUsuario.CONDUCTOR && conductor.getRol() != RolUsuario.AMBOS) {
             throw new IllegalArgumentException("Solo los conductores pueden registrar vehículos");
         }
 
         if (vehiculoRepository.existsByPlaca(request.getPlaca().toUpperCase())) {
             throw new IllegalArgumentException("Ya existe un vehículo con esta placa");
+        }
+
+        // La validación @AssertTrue en VehiculoRequest ya obliga a que
+        // terminosAceptados llegue en true, pero lo reforzamos aquí por
+        // si el DTO se construye o reutiliza desde otro punto del código.
+        if (!request.isTerminosAceptados()) {
+            throw new IllegalArgumentException(
+                    "Debes aceptar los términos y condiciones: los documentos del vehículo deben estar al día (SOAT, tecnomecánica, licencia de conducción)");
         }
 
         Vehiculo vehiculo = Vehiculo.builder()
@@ -46,6 +56,8 @@ public class VehiculoService {
                 .activo(true)
                 .tipo(request.getTipo())
                 .cedulaPropietario(request.getCedulaPropietario())
+                .terminosAceptados(true)
+                .terminosAceptadosEn(LocalDateTime.now())
                 .build();
 
         return toResponse(vehiculoRepository.save(vehiculo));
@@ -67,12 +79,19 @@ public class VehiculoService {
             throw new IllegalArgumentException("No tienes permiso para editar este vehículo");
         }
 
+        if (!request.isTerminosAceptados()) {
+            throw new IllegalArgumentException(
+                    "Debes aceptar los términos y condiciones: los documentos del vehículo deben estar al día (SOAT, tecnomecánica, licencia de conducción)");
+        }
+
         vehiculo.setMarca(request.getMarca());
         vehiculo.setModelo(request.getModelo());
         vehiculo.setAnio(request.getAnio());
         vehiculo.setColor(request.getColor());
         vehiculo.setCapacidadPasajeros(request.getCapacidadPasajeros());
         vehiculo.setFotoVehiculo(request.getFotoVehiculo());
+        vehiculo.setTerminosAceptados(true);
+        vehiculo.setTerminosAceptadosEn(LocalDateTime.now());
 
         return toResponse(vehiculoRepository.save(vehiculo));
     }
@@ -103,6 +122,8 @@ public class VehiculoService {
                 .activo(v.isActivo())
                 .tipo(v.getTipo().name())
                 .cedulaPropietario(v.getCedulaPropietario())
+                .terminosAceptados(v.isTerminosAceptados())
+                .terminosAceptadosEn(v.getTerminosAceptadosEn() != null ? v.getTerminosAceptadosEn().toString() : null)
                 .build();
     }
 }

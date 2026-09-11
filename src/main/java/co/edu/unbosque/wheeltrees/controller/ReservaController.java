@@ -52,6 +52,15 @@ public class ReservaController {
 		return ResponseEntity.ok(reservaService.cancelar(pasajeroId, reservaId));
 	}
 
+	@Operation(summary = "Confirmar si un pasajero abordó o no (conductor, viaje EN_CURSO)")
+	@PatchMapping("/{reservaId}/abordo")
+	public ResponseEntity<ReservaResponse> marcarAbordo(@RequestHeader("Authorization") String authHeader,
+			@PathVariable UUID reservaId, @Valid @RequestBody MarcarAbordoRequest request) {
+
+		UUID conductorId = extraerId(authHeader);
+		return ResponseEntity.ok(reservaService.marcarAbordo(conductorId, reservaId, request));
+	}
+
 	@Operation(summary = "Ver mis reservas (pasajero)")
 	@GetMapping("/mis-reservas")
 	public ResponseEntity<List<ReservaResponse>> misReservas(@RequestHeader("Authorization") String authHeader) {

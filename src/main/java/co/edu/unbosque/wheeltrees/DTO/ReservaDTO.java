@@ -34,14 +34,28 @@ public class ReservaDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@Builder
+	public static class MarcarAbordoRequest {
+		@NotNull
+		private boolean abordo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
 	public static class ReservaResponse {
 		private String id;
 		private String viajeId;
 		private String origenViaje;
 		private LocalDateTime fechaHoraSalida;
+		private String pasajeroId;
 		private String pasajeroNombre;
 		private String pasajeroEmail;
+		private String conductorId;
+		private String conductorNombre;
 		private String estado;
+		private Boolean abordo;
 		private String notasPasajero;
 		private LocalDateTime creadoEn;
 	}

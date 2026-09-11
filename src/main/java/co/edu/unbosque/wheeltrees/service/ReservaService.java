@@ -24,8 +24,11 @@ public class ReservaService {
 		Usuario pasajero = usuarioRepository.findById(pasajeroId)
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-		if (pasajero.getRol() != RolUsuario.PASAJERO) {
-			throw new IllegalArgumentException("Solo los pasajeros pueden reservar cupos");
+		// Solo los usuarios con rol PASAJERO (o AMBOS, por compatibilidad con
+		// cuentas antiguas) pueden reservar cupos. Un CONDUCTOR publica y
+		// gestiona viajes, pero no reserva cupos en viajes ajenos.
+		if (pasajero.getRol() != RolUsuario.PASAJERO && pasajero.getRol() != RolUsuario.AMBOS) {
+			throw new IllegalArgumentException("Solo los pasajeros pueden reservar cupos en un viaje");
 		}
 
 		Viaje viaje = viajeRepository.findById(request.getViajeId())
@@ -117,6 +120,29 @@ public class ReservaService {
 		return toResponse(reservaRepository.save(reserva));
 	}
 
+	// Conductor marca si un pasajero abordó o no, una vez el viaje EN_CURSO
+	@Transactional
+	public ReservaResponse marcarAbordo(UUID conductorId, UUID reservaId, MarcarAbordoRequest request) {
+
+		Reserva reserva = reservaRepository.findById(reservaId)
+				.orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+		if (!reserva.getViaje().getConductor().getId().equals(conductorId)) {
+			throw new IllegalArgumentException("No tienes permiso para gestionar esta reserva");
+		}
+
+		if (reserva.getViaje().getEstado() != EstadoViaje.EN_CURSO) {
+			throw new IllegalArgumentException("Solo puedes confirmar pasajeros mientras el viaje está en curso");
+		}
+
+		if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+			throw new IllegalArgumentException("Solo se puede confirmar el abordaje de reservas CONFIRMADA");
+		}
+
+		reserva.setAbordo(request.isAbordo());
+		return toResponse(reservaRepository.save(reserva));
+	}
+
 	// FIX: se agregó @Transactional(readOnly = true). Sin esto, la sesión de
 	// Hibernate se cierra antes de que toResponse() acceda a las relaciones
 	// LAZY (viaje, pasajero) -> LazyInitializationException ("no Session").
@@ -148,9 +174,13 @@ public class ReservaService {
 				.viajeId(r.getViaje().getId().toString())
 				.origenViaje(r.getViaje().getOrigenDescripcion())
 				.fechaHoraSalida(r.getViaje().getFechaHoraSalida())
+				.pasajeroId(r.getPasajero().getId().toString())
 				.pasajeroNombre(r.getPasajero().getNombre() + " " + r.getPasajero().getApellido())
 				.pasajeroEmail(r.getPasajero().getEmail())
+				.conductorId(r.getViaje().getConductor().getId().toString())
+				.conductorNombre(r.getViaje().getConductor().getNombre() + " " + r.getViaje().getConductor().getApellido())
 				.estado(r.getEstado().name())
+				.abordo(r.getAbordo())
 				.notasPasajero(r.getNotasPasajero())
 				.creadoEn(r.getCreadoEn())
 				.build();

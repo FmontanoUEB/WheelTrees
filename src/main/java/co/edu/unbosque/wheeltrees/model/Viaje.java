@@ -62,6 +62,20 @@ public class Viaje {
     @Column(name = "estado", nullable = false)
     private EstadoViaje estado = EstadoViaje.PROGRAMADO;
 
+    // Última posición GPS reportada por el conductor mientras el viaje está
+    // EN_CURSO. Se sobrescribe en cada actualización (no se guarda
+    // histórico) — solo sirve como "última posición conocida" para cuando
+    // un pasajero abre la pantalla de seguimiento y aún no llegó ningún
+    // mensaje por WebSocket.
+    @Column(name = "ubicacion_lat")
+    private Double ubicacionLat;
+
+    @Column(name = "ubicacion_lng")
+    private Double ubicacionLng;
+
+    @Column(name = "ubicacion_actualizada_en")
+    private LocalDateTime ubicacionActualizadaEn;
+
     @Column(name = "notas", length = 500)
     private String notas;
 

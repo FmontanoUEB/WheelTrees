@@ -44,6 +44,16 @@ public class VehiculoDTO {
 		private Integer capacidadPasajeros;
 
 		private String fotoVehiculo;
+
+		/**
+		 * El conductor debe aceptar los términos y condiciones declarando que el
+		 * vehículo cuenta con todos los documentos legales al día (SOAT,
+		 * tecnomecánica cuando aplique, licencia de conducción vigente, tarjeta
+		 * de propiedad, etc.). El registro/actualización se rechaza si no se
+		 * envía en true.
+		 */
+		@AssertTrue(message = "Debes aceptar los términos y condiciones: los documentos del vehículo deben estar al día")
+		private boolean terminosAceptados;
 	}
 
 	@Getter
@@ -63,5 +73,7 @@ public class VehiculoDTO {
 		private Integer capacidadPasajeros;
 		private String fotoVehiculo;
 		private boolean activo;
+		private boolean terminosAceptados;
+		private String terminosAceptadosEn;
 	}
 }

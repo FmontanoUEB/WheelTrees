@@ -63,7 +63,10 @@ public class AuthService {
 
 		Usuario usuario = Usuario.builder().nombre(request.getNombre()).apellido(request.getApellido())
 				.email(request.getEmail()).passwordHash(passwordEncoder.encode(request.getPassword()))
-				.rol(request.getRol()).emailVerificado(false).cuentaActiva(true).build();
+				.rol(request.getRol()).emailVerificado(false).cuentaActiva(true)
+				.direccionCasa(request.getDireccionCasa()).casaLat(request.getCasaLat())
+				.casaLng(request.getCasaLng()).direccionTrabajo(request.getDireccionTrabajo())
+				.trabajoLat(request.getTrabajoLat()).trabajoLng(request.getTrabajoLng()).build();
 
 		usuarioRepository.save(usuario);
 
@@ -123,7 +126,8 @@ public class AuthService {
 
 		UsuarioResponse usuarioResponse = UsuarioResponse.builder().id(usuario.getId().toString())
 				.nombre(usuario.getNombre()).apellido(usuario.getApellido()).email(usuario.getEmail())
-				.rol(usuario.getRol().name()).fotoPerfil(usuario.getFotoPerfil()).build();
+				.rol(usuario.getRol().name()).fotoPerfil(usuario.getFotoPerfil())
+				.direccionCasa(usuario.getDireccionCasa()).direccionTrabajo(usuario.getDireccionTrabajo()).build();
 
 		return AuthResponse.builder().accessToken(token).tipo("Bearer").usuario(usuarioResponse).build();
 	}
