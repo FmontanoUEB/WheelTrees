@@ -1,0 +1,17 @@
+# -- Credenciales reales — NUNCA subir --------------------------
+src/main/resources/application.properties
+
+# -- Maven / build ------------------------------------------------
+target/
+bin/
+*.class
+
+# -- Eclipse --------------------------------------------------------
+.classpath
+.project
+.settings/
+.factorypath
+
+# -- Logs y temporales ----------------------------------------------
+*.log
+.DS_Store

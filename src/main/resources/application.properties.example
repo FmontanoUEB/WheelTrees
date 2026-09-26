@@ -1,0 +1,38 @@
+# ── Aplicación y Servidor
+spring.application.name=wheeltrees
+server.port=8080
+
+# ── Base de datos H2 (desarrollo local)
+spring.datasource.url=jdbc:h2:mem:wheeltreesdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+# ── Brevo SMTP
+spring.mail.host=smtp-relay.brevo.com
+spring.mail.port=587
+spring.mail.username=TU_LOGIN_BREVO
+spring.mail.password=TU_API_KEY_BREVO
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.ssl.trust=*
+spring.mail.properties.mail.smtp.ssl.checkserveridentity=false
+spring.mail.properties.mail.smtp.starttls.required=true
+
+# ── JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+
+# ── Seguridad y JWT
+jwt.secret=TU_SECRET_BASE64
+jwt.expiration-ms=86400000
+
+# ── Swagger / OpenAPI
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.try-it-out-enabled=true
+springdoc.swagger-ui.operations-sorter=method

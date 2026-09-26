@@ -1,0 +1,64 @@
+package co.edu.unbosque.wheeltrees.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import co.edu.unbosque.wheeltrees.security.CifradoAttributeConverter;
+import jakarta.persistence.Convert;
+
+
+@Entity
+@Table(name = "reservas", uniqueConstraints = @UniqueConstraint(columnNames = { "viaje_id", "pasajero_id" }))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Reserva {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "viaje_id", nullable = false)
+	private Viaje viaje;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "pasajero_id", nullable = false)
+	private Usuario pasajero;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "estado", nullable = false)
+	private EstadoReserva estado = EstadoReserva.PENDIENTE;
+
+	/**
+	 * Solo tiene sentido una vez el viaje está EN_CURSO: null = el conductor
+	 * todavía no decide, true = el pasajero abordó, false = no se presentó
+	 * en el punto de encuentro.
+	 */
+	@Column(name = "abordo")
+	private Boolean abordo;
+	@Convert(converter = CifradoAttributeConverter.class)
+	@Column(name = "notas_pasajero", length = 500)
+	private String notasPasajero;
+
+	@Column(name = "creado_en", nullable = false, updatable = false)
+	private LocalDateTime creadoEn;
+
+	@Column(name = "actualizado_en")
+	private LocalDateTime actualizadoEn;
+
+	@PrePersist
+	protected void onCreate() {
+		this.creadoEn = LocalDateTime.now();
+		this.actualizadoEn = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		this.actualizadoEn = LocalDateTime.now();
+	}
+}
