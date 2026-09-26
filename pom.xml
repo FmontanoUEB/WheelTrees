@@ -20,6 +20,17 @@
 
     <properties>
         <java.version>21</java.version>
+
+        <!-- ── SonarCloud ──
+             Verifica estos dos valores en sonarcloud.io → tu proyecto →
+             Information (o en la pantalla de "Analyze new project"):
+             ajústalos si no coinciden exactamente con lo que te muestra. -->
+        <sonar.projectKey>FmontanoUEB_WheelTrees</sonar.projectKey>
+        <sonar.organization>fmontanoueb</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+        <!-- Le dice a Sonar dónde quedó el reporte de JaCoCo -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
