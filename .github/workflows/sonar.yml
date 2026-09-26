@@ -40,17 +40,12 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Preparar application.properties para pruebas
-        env:
-          APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
-        run: |
-          cp src/main/resources/application.properties.example src/main/resources/application.properties
-          echo "app.encryption.key=$APP_ENCRYPTION_KEY" >> src/main/resources/application.properties
+        run: cp src/main/resources/application.properties src/main/resources/application.properties
 
       - name: Ejecutar pruebas, generar cobertura y analizar con SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
         run: >
           mvn -B verify org.jacoco:jacoco-maven-plugin:report sonar:sonar
           -Dsonar.token=$SONAR_TOKEN
