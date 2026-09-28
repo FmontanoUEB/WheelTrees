@@ -12,23 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # Descargar el código
       - name: Checkout del código
         uses: actions/checkout@v4
         with:
-          # SonarCloud necesita el historial completo
-          # para el análisis de código nuevo
+          # SonarCloud necesita el historial completo para el análisis
+          # incremental de "código nuevo" (New Code) del Quality Gate.
           fetch-depth: 0
 
-      # Configurar Java
       - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # Cache de SonarCloud
       - name: Cachear paquetes de SonarCloud
         uses: actions/cache@v4
         with:
@@ -36,7 +32,6 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # Cache de Maven
       - name: Cachear dependencias de Maven
         uses: actions/cache@v4
         with:
@@ -44,31 +39,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Verificar estructura del proyecto
-      - name: Verificar archivos de configuración
-        run: |
-          echo "Directorio actual:"
-          pwd
+      # La config de pruebas vive en src/test/resources/application.properties
+      # (H2 en memoria + valores dummy), Maven la carga solo. No se necesita
+      # copiar ni generar nada aquí.
 
-          echo ""
-          echo "Contenido del directorio:"
-          ls -la
-
-          echo ""
-          echo "Archivos application.properties encontrados:"
-          find . -name "application.properties" -type f
-
-          echo ""
-          echo "Archivos pom.xml encontrados:"
-          find . -name "pom.xml" -type f
-
-      # Ejecutar pruebas, generar cobertura y analizar con SonarCloud
       - name: Ejecutar pruebas, generar cobertura y analizar con SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
-          mvn -B verify
-          org.jacoco:jacoco-maven-plugin:report
-          sonar:sonar
+          mvn -B verify org.jacoco:jacoco-maven-plugin:report sonar:sonar
           -Dsonar.token=$SONAR_TOKEN
