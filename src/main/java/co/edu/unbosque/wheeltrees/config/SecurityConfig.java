@@ -72,10 +72,15 @@ public class SecurityConfig {
     @Bean 
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        // "*" es seguro aquí porque la app se consume desde Expo Go (móvil,
+        // no navegador) y la autenticación va en el header Authorization
+        // (JWT), no en cookies. Por eso NO se activa allowCredentials:
+        // ese flag es para cookies/auth HTTP nativa, que este proyecto no usa.
+        // Si en el futuro agregan un frontend web en un dominio propio,
+        // reemplacen el "*" por ese dominio exacto.
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

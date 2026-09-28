@@ -39,6 +39,7 @@ public class AuthService {
 	private final RecuperarContrasenaRepository recuperacionPasswordRepository;
 
 	private static final String DOMINIO_INSTITUCIONAL = "@unbosque.edu.co";
+	private static final SecureRandom GENERADOR_ALEATORIO = new SecureRandom();
 
 	@Transactional
 	public MensajeResponse eliminarUsuarioPorEmail(String email) {
@@ -138,8 +139,7 @@ public class AuthService {
 	}
 
 	private String generarOtp() {
-		SecureRandom random = new SecureRandom();
-		return String.valueOf(100000 + random.nextInt(900000));
+		return String.valueOf(100000 + GENERADOR_ALEATORIO.nextInt(900000));
 	}
 
 	@Transactional

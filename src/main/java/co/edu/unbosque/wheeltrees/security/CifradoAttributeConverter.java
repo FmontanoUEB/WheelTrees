@@ -31,6 +31,7 @@ public class CifradoAttributeConverter implements AttributeConverter<String, Str
 	private static final String ALGORITMO = "AES/GCM/NoPadding";
 	private static final int TAMANIO_TAG_BITS = 128;
 	private static final int TAMANIO_IV_BYTES = 12;
+	private static final SecureRandom GENERADOR_ALEATORIO = new SecureRandom();
 
 	@Value("${app.encryption.key}")
 	private String claveBase64;
@@ -42,7 +43,7 @@ public class CifradoAttributeConverter implements AttributeConverter<String, Str
 		}
 		try {
 			byte[] iv = new byte[TAMANIO_IV_BYTES];
-			new SecureRandom().nextBytes(iv);
+			GENERADOR_ALEATORIO.nextBytes(iv);
 
 			Cipher cipher = Cipher.getInstance(ALGORITMO);
 			cipher.init(Cipher.ENCRYPT_MODE, obtenerClave(), new GCMParameterSpec(TAMANIO_TAG_BITS, iv));
